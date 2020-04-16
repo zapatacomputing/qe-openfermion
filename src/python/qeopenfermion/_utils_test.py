@@ -5,14 +5,15 @@ import os
 
 import pyquil
 from pyquil.paulis import sX, sY, sZ, sI
-from openfermion import QubitOperator
+from openfermion import QubitOperator, IsingOperator
 import openfermion
 from ._io import (
     convert_qubitop_to_dict, save_qubit_operator, load_qubit_operator
 )
 from ._utils import (
     generate_random_qubitop, get_qubitop_from_coeffs_and_labels,
-    evaluate_qubit_operator, get_qubitop_from_matrix
+    evaluate_qubit_operator, get_qubitop_from_matrix, reverse_qubit_order,
+    expectation, change_operator_type
 )
 
 
@@ -87,3 +88,42 @@ class TestQubitOperator(unittest.TestCase):
         value_estimate = evaluate_qubit_operator(qubit_op, expectation_values)
         # Then
         self.assertAlmostEqual(value_estimate.value, 0.5)
+
+    def test_reverse_qubit_order(self):
+        # Given
+        op1 = QubitOperator('Z0')
+        op2 = QubitOperator('Z1')
+        # When
+        reverse_op1 = reverse_qubit_order(op1, n_qubits=2)
+        reverse_op2 = reverse_qubit_order(op2, n_qubits=2)
+        # Then 
+        self.assertEqual(op1, reverse_op2)
+        self.assertEqual(op2, reverse_op1)
+
+    def test_expectation(self):
+        """Check <Z0> and <Z1> for the state |100>"""
+        # Given
+        wf = pyquil.wavefunction.Wavefunction([0, 1, 0, 0, 0, 0, 0, 0])
+        op1 = QubitOperator('Z0')
+        op2 = QubitOperator('Z1')
+        # When 
+        exp_op1 = expectation(op1, wf)
+        exp_op2 = expectation(op2, wf)
+        self.assertAlmostEqual(-1, exp_op1)
+        self.assertAlmostEqual(1, exp_op2)
+
+    def test_change_operator_type(self):
+        # Given
+        operator1 = QubitOperator('Z0 Z1', 4.5)
+        operator2 = IsingOperator('Z0 Z1', 4.5)
+        operator3 = IsingOperator()
+        operator4 = IsingOperator('Z0', 0.5) + IsingOperator('Z1', 2.5)
+        # When 
+        new_operator1 = change_operator_type(operator1, IsingOperator)
+        new_operator2 = change_operator_type(operator2, QubitOperator)
+        new_operator3 = change_operator_type(operator3, QubitOperator)
+        new_operator4 = change_operator_type(operator4, QubitOperator)
+        self.assertEqual(IsingOperator('Z0 Z1', 4.5), new_operator1)
+        self.assertEqual(QubitOperator('Z0 Z1', 4.5), new_operator2)
+        self.assertEqual(QubitOperator(), new_operator3)
+        self.assertEqual(QubitOperator('Z0', 0.5) + QubitOperator('Z1', 2.5), new_operator4)
