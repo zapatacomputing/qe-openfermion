@@ -24,9 +24,9 @@ spec:
         path: /app/python_script.py
         raw:
           data: |
-            from orquestra.core.measurement import save_expectation_values
-            from orquestra.core.circuit import load_circuit
-            from orquestra.core.utils import create_object
+            from zquantum.core.measurement import save_expectation_values
+            from zquantum.core.circuit import load_circuit
+            from zquantum.core.utils import create_object
             from qeopenfermion import load_qubit_operator
              circuit = load_circuit('circuit.json')
              operator = load_qubit_operator('qubitop.json')
@@ -55,8 +55,8 @@ spec:
         raw:
           data: |
             from qeopenfermion import load_qubit_operator, evaluate_qubit_operator
-            from orquestra.core.measurement import load_expectation_values
-            from orquestra.core.utils import save_value_estimate
+            from zquantum.core.measurement import load_expectation_values
+            from zquantum.core.utils import save_value_estimate
             qubit_operator = load_qubit_operator('qubit_operator.json')
             expectation_values = load_expectation_values('expectation_values.json')
             value_estimate = evaluate_qubit_operator(qubit_operator, expectation_values)
