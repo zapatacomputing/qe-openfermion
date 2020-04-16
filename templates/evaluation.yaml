@@ -39,7 +39,7 @@ spec:
       - name: expectation-values
         path: /app/expectation_values.json
 
-   - name: evaluate-qubit-operator
+  - name: evaluate-qubit-operator
     parent: generic-task
     inputs:
       parameters:
