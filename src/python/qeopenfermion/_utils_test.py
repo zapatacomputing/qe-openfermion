@@ -13,13 +13,14 @@ from ._io import (
 from ._utils import (
     generate_random_qubitop, get_qubitop_from_coeffs_and_labels,
     evaluate_qubit_operator, get_qubitop_from_matrix, reverse_qubit_order,
-    expectation, change_operator_type
+    expectation, change_operator_type, evaluate_operator_for_parameter_grid
 )
 
 
 from zquantum.core.measurement import ExpectationValues
-from zquantum.core.utils import RNDSEED
+from zquantum.core.utils import RNDSEED, create_object
 from zquantum.core.testing import create_random_qubitop, create_random_isingop
+from zquantum.core.circuit import build_uniform_param_grid
 
 class TestQubitOperator(unittest.TestCase):
 
@@ -88,6 +89,22 @@ class TestQubitOperator(unittest.TestCase):
         value_estimate = evaluate_qubit_operator(qubit_op, expectation_values)
         # Then
         self.assertAlmostEqual(value_estimate.value, 0.5)
+
+    def test_evaluate_operator_for_parameter_grid(self):
+        # Given
+        ansatz = {'ansatz_type': 'singlet UCCSD', 'ansatz_module': 'zquantum.qaoa.ansatz', 'ansatz_func': 'build_qaoa_circuit', 'ansatz_grad_func': 'build_qaoa_circuit_grads', 'supports_simple_shift_rule': False, 'ansatz_kwargs': {'hamiltonians': [{'schema': 'zapata-v1-qubit_op', 'terms': [{'pauli_ops': [], 'coefficient': {'real': 0.5}}, {'pauli_ops': [{'qubit': 1, 'op': 'Z'}], 'coefficient': {'real': 0.5}}]}, {'schema': 'zapata-v1-qubit_op', 'terms': [{'pauli_ops': [{'qubit': 0, 'op': 'X'}], 'coefficient': {'real': 1.0}}, {'pauli_ops': [{'qubit': 1, 'op': 'X'}], 'coefficient': {'real': 1.0}}]}]}, 'n_params': [2]}
+        grid = build_uniform_param_grid(ansatz, 1, 0, np.pi, np.pi/10)
+        backend = create_object({'module_name': 'zquantum.core.interfaces.mock_objects', 'function_name': 'MockQuantumSimulator'})
+        op = openfermion.QubitOperator('0.5 [] + 0.5 [Z1]')
+        # When
+        parameter_grid_evaluation = evaluate_operator_for_parameter_grid(ansatz, grid, backend, op)
+        # Then (for brevity, only check first and last evaluations)
+        self.assertIsInstance(parameter_grid_evaluation[0]['value'].value, float)
+        self.assertEqual(parameter_grid_evaluation[0]['parameter1'], 0)
+        self.assertEqual(parameter_grid_evaluation[0]['parameter2'], 0)
+        self.assertIsInstance(parameter_grid_evaluation[99]['value'].value, float)
+        self.assertEqual(parameter_grid_evaluation[99]['parameter1'], np.pi-np.pi/10)
+        self.assertEqual(parameter_grid_evaluation[99]['parameter2'], np.pi-np.pi/10)
 
     def test_reverse_qubit_order(self):
         # Given

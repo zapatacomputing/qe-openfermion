@@ -1,15 +1,20 @@
 import unittest
+import subprocess
 import os
+import numpy as np
 from openfermion import (
     QubitOperator, InteractionOperator, FermionOperator, IsingOperator,
     get_interaction_operator, hermitian_conjugated
 )
+from zquantum.core.circuit import build_uniform_param_grid
+from zquantum.core.utils import create_object
+from ._utils import evaluate_operator_for_parameter_grid
 from ._io import (
     load_qubit_operator, save_qubit_operator, load_interaction_operator,
     save_interaction_operator, convert_qubitop_to_dict, convert_dict_to_qubitop, 
     convert_interaction_op_to_dict, convert_dict_to_interaction_op,
     convert_isingop_to_dict, convert_dict_to_isingop, 
-    save_ising_operator, load_ising_operator
+    save_ising_operator, load_ising_operator, save_parameter_grid_evaluation
 )
 
 
@@ -102,3 +107,19 @@ class TestQubitOperator(unittest.TestCase):
         # Then
         self.assertEqual(ising_op, loaded_op)
         os.remove('ising_op.json')
+        
+
+    def test_save_parameter_grid_evaluation(self):
+        # Given
+        ansatz = {'ansatz_type': 'singlet UCCSD', 'ansatz_module': 'zquantum.qaoa.ansatz', 'ansatz_func': 'build_qaoa_circuit', 'ansatz_grad_func': 'build_qaoa_circuit_grads', 'supports_simple_shift_rule': False, 'ansatz_kwargs': {'hamiltonians': [{'schema': 'zapata-v1-qubit_op', 'terms': [{'pauli_ops': [], 'coefficient': {'real': 0.5}}, {'pauli_ops': [{'qubit': 1, 'op': 'Z'}], 'coefficient': {'real': 0.5}}]}, {'schema': 'zapata-v1-qubit_op', 'terms': [{'pauli_ops': [{'qubit': 0, 'op': 'X'}], 'coefficient': {'real': 1.0}}, {'pauli_ops': [{'qubit': 1, 'op': 'X'}], 'coefficient': {'real': 1.0}}]}]}, 'n_params': [2]}
+        grid = build_uniform_param_grid(ansatz, 1, 0, np.pi, np.pi/10)
+        backend = create_object({'module_name': 'qeforest.simulator', 'function_name': 'ForestSimulator', 'device_name': 'wavefunction-simulator'})
+        op = QubitOperator('0.5 [] + 0.5 [Z1]')
+        parameter_grid_evaluation = evaluate_operator_for_parameter_grid(ansatz, grid, backend, op)
+        # When
+        save_parameter_grid_evaluation(parameter_grid_evaluation, "parameter-grid-evaluation.json")
+        # Then 
+        # TODO
+
+    def tearDown(self):
+        subprocess.run(["rm", "parameter-grid-evaluation.json"])

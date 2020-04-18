@@ -201,3 +201,23 @@ def save_ising_operator(ising_operator:IsingOperator, filename: str) -> None:
 
     with open(filename, 'w') as f:
        f.write(json.dumps(convert_isingop_to_dict(ising_operator), indent=2))
+
+
+def save_parameter_grid_evaluation(parameter_grid_evaluation, filename):
+    """Save a list of parameter grid evaluations to file
+
+    Args:
+        parameter_grid_evaluation (list): List of dicts with a value estimate object under the "value" field
+        file (str or file-like object): the name of the file, or a file-like object
+    """
+    full_dict = {}
+    full_dict['schema'] = SCHEMA_VERSION + '-parameter_grid_evaluation'
+    dict_list = []
+    for evaluation in parameter_grid_evaluation:
+        value = evaluation['value'].to_dict()
+        value['schema'] = SCHEMA_VERSION + '-value_estimate'
+        evaluation['value'] = value
+    full_dict['values_set'] = parameter_grid_evaluation
+
+    with open(filename, 'w') as f:
+        f.write(json.dumps(full_dict, indent=2))

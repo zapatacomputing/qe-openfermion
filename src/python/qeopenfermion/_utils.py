@@ -4,8 +4,10 @@ from openfermion.transforms import get_sparse_operator
 from pyquil.paulis import PauliSum, PauliTerm
 import numpy as np
 import random
+import copy
 from typing import List, Union
 
+from zquantum.core.circuit import build_ansatz_circuit
 from zquantum.core.utils import bin2dec, dec2bin, ValueEstimate
 from zquantum.core.measurement import ExpectationValues
 
@@ -208,6 +210,44 @@ def evaluate_qubit_operator(qubit_operator: QubitOperator,
 
 	value_estimate = ValueEstimate(total)
 	return value_estimate
+
+
+def evaluate_operator_for_parameter_grid(ansatz, grid, backend, operator,
+    previous_layer_params=[]):
+	"""Evaluate the expectation value of an operator for every set of circuit
+	parameters in the parameter grid.
+
+	Args:
+		ansatz (dict): the ansatz
+		grid (zquantum.core.circuit.ParameterGrid): The parameter grid containing
+			the parameters for the last layer of the ansatz
+        backend (zquantum.core.interfaces.backend.QuantumSimulator): the backend 
+			to run the circuits on 
+		operator (core.qubitoperator.QubitOperator): the operator
+		previous_layer_params (array): A list of the parameters for previous layers
+			of the ansatz
+
+	Returns:
+		value_estimate (core.utils.ValueEstimate): stores the value of the expectation and its
+			 precision
+	"""
+	parameter_grid_evaluation = []
+	for last_layer_params in grid.params_list:
+        # Build the ansatz circuit
+		params = np.concatenate((np.asarray(previous_layer_params), np.asarray(last_layer_params)))
+
+        # Build the ansatz circuit
+		circuit = build_ansatz_circuit(ansatz, params)
+
+		operator_no_coeff = copy.deepcopy(operator)
+		for term in operator.terms:
+			operator_no_coeff.terms[term] = 1
+
+		expectation_values = backend.get_expectation_values(circuit, operator_no_coeff)
+		value_estimate = evaluate_qubit_operator(operator, expectation_values)
+		parameter_grid_evaluation.append({'value': value_estimate, 'parameter1': last_layer_params[0], 'parameter2': last_layer_params[1]})
+		
+	return parameter_grid_evaluation
 
 
 def reverse_qubit_order(qubit_operator, n_qubits=None):
