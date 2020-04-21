@@ -1,0 +1,67 @@
+spec:
+  templates:
+  - name: get-expectation-values-for-qubit-operator
+    parent: generic-task
+    inputs:
+      parameters:
+      - name: backend-specs
+      - name: command
+        value: bash main_script.sh
+      artifacts:
+      - name: circuit
+        path: /app/circuit.json
+      - name: qubit-operator
+        path: /app/qubitop.json
+      - name: main-script
+        path: /app/main_script.sh
+        raw:
+          data: |
+            qvm -S &
+            quilc -S &
+            source /app/usr/local/bin/compilers_and_libraries.sh
+            python3 python_script.py
+      - name: python-script
+        path: /app/python_script.py
+        raw:
+          data: |
+            from zquantum.core.measurement import save_expectation_values
+            from zquantum.core.circuit import load_circuit
+            from zquantum.core.utils import create_object
+            from qeopenfermion import load_qubit_operator
+             circuit = load_circuit('circuit.json')
+             operator = load_qubit_operator('qubitop.json')
+             backend_specs = {{inputs.parameters.backend-specs}}
+            backend = create_object(backend_specs)
+             expectation_values = backend.get_expectation_values(circuit, operator)
+            save_expectation_values(expectation_values, 'expectation_values.json')
+    outputs:
+      artifacts:
+      - name: expectation-values
+        path: /app/expectation_values.json
+
+  - name: evaluate-qubit-operator
+    parent: generic-task
+    inputs:
+      parameters:
+      - name: command
+        value: python3 main_script.py
+      artifacts:
+      - name: qubit-operator
+        path: /app/qubit_operator.json
+      - name: expectation-values
+        path: /app/expectation_values.json
+      - name: main-script
+        path: /app/main_script.py
+        raw:
+          data: |
+            from qeopenfermion import load_qubit_operator, evaluate_qubit_operator
+            from zquantum.core.measurement import load_expectation_values
+            from zquantum.core.utils import save_value_estimate
+            qubit_operator = load_qubit_operator('qubit_operator.json')
+            expectation_values = load_expectation_values('expectation_values.json')
+            value_estimate = evaluate_qubit_operator(qubit_operator, expectation_values)
+            save_value_estimate(value_estimate, 'value_estimate.json')
+    outputs:
+      artifacts:
+      - name: value-estimate
+        path: /app/value_estimate.js
