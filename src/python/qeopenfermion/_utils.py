@@ -5,11 +5,12 @@ from pyquil.paulis import PauliSum, PauliTerm
 import numpy as np
 import random
 import copy
-from typing import List, Union
+from typing import List, Union, Optional
 
 from zquantum.core.circuit import build_ansatz_circuit
 from zquantum.core.utils import bin2dec, dec2bin, ValueEstimate
 from zquantum.core.measurement import ExpectationValues
+from openfermion import count_qubits
 
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
 	r"""Expands a 2^n by 2^n matrix into n-qubit Pauli basis. The runtime of
@@ -185,6 +186,7 @@ def generate_random_qubitop(nqubits: int,
 			label_set.add(str(label))
 	return get_qubitop_from_coeffs_and_labels(coeffs, labels)
 
+
 def evaluate_qubit_operator(qubit_operator: QubitOperator, 
 							expectation_values: ExpectationValues) -> ValueEstimate:
 	"""Evaluate the expectation value of a qubit operator using
@@ -246,12 +248,13 @@ def evaluate_operator_for_parameter_grid(ansatz, grid, backend, operator,
 	return parameter_grid_evaluation
 
 
-def reverse_qubit_order(qubit_operator, n_qubits=None):
+def reverse_qubit_order(qubit_operator:QubitOperator, n_qubits:Optional[int]=None):
     """Reverse the order of qubit indices in a qubit operator.
 
     Args:
-        qubit_operator (openfermion.ops.QubitOperator): the operator
-        n_qubits (int): total number of qubits (optional)
+        qubit_operator (openfermion.QubitOperator): the operator
+        n_qubits (int): total number of qubits. Needs to be provided when 
+					the size of the system of interest is greater than the size of qubit operator (optional)
 
     Returns:
         reversed_op (openfermion.ops.QubitOperator)
@@ -271,7 +274,6 @@ def reverse_qubit_order(qubit_operator, n_qubits=None):
             new_factor[0] = n_qubits - 1 - new_factor[0]
             new_term.append(tuple(new_factor))
         reversed_op += QubitOperator(tuple(new_term), qubit_operator.terms[term])
-
     return reversed_op
 
 
@@ -301,6 +303,7 @@ def expectation(qubit_op, wavefunction, reverse_operator=True):
 	exp_val = openfermion_expectation(sparse_op, wavefunction.amplitudes)
 	return exp_val
 	
+
 def change_operator_type(operator, operatorType):
 	'''Take an operator and attempt to cast it to an operator of a different type
 
