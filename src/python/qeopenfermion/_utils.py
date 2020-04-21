@@ -239,12 +239,8 @@ def evaluate_operator_for_parameter_grid(ansatz, grid, backend, operator,
         # Build the ansatz circuit
 		circuit = build_ansatz_circuit(ansatz, params)
 
-		operator_no_coeff = copy.deepcopy(operator)
-		for term in operator.terms:
-			operator_no_coeff.terms[term] = 1
-
-		expectation_values = backend.get_expectation_values(circuit, operator_no_coeff)
-		value_estimate = evaluate_qubit_operator(operator, expectation_values)
+		expectation_values = backend.get_expectation_values(circuit, operator)
+		value_estimate = ValueEstimate(sum(expectation_values.values))
 		parameter_grid_evaluation.append({'value': value_estimate, 'parameter1': last_layer_params[0], 'parameter2': last_layer_params[1]})
 		
 	return parameter_grid_evaluation
