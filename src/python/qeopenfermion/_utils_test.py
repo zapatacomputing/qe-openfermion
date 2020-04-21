@@ -6,13 +6,14 @@ import os
 import pyquil
 from pyquil.paulis import sX, sY, sZ, sI
 from openfermion import QubitOperator
-import openfermion
+
+from openfermion.utils import qubit_operator_sparse
 from ._io import (
     convert_qubitop_to_dict, save_qubit_operator, load_qubit_operator
 )
 from ._utils import (
     generate_random_qubitop, get_qubitop_from_coeffs_and_labels,
-    evaluate_qubit_operator, get_qubitop_from_matrix
+    evaluate_qubit_operator, get_qubitop_from_matrix, reverse_qubit_order
 )
 
 
@@ -44,7 +45,7 @@ class TestQubitOperator(unittest.TestCase):
 
         # When
         A_qubitop = get_qubitop_from_matrix(A)
-        A_qubitop_matrix = np.array(openfermion.utils.qubit_operator_sparse(A_qubitop).todense())
+        A_qubitop_matrix = np.array(qubit_operator_sparse(A_qubitop).todense())
         test_matrix = A_qubitop_matrix - A
         
         # Then
@@ -81,9 +82,25 @@ class TestQubitOperator(unittest.TestCase):
 
     def test_evaluate_qubit_operator(self):
         # Given
-        qubit_op = openfermion.QubitOperator('0.5 [] + 0.5 [Z1]')
+        qubit_op = QubitOperator('0.5 [] + 0.5 [Z1]')
         expectation_values = ExpectationValues([0.5, 0.5])
         # When
         value_estimate = evaluate_qubit_operator(qubit_op, expectation_values)
         # Then
         self.assertAlmostEqual(value_estimate.value, 0.5)
+
+    def test_reverse_qubit_order(self):
+        # Given
+        op1 = QubitOperator('[Z0 Z1]')
+        op2 = QubitOperator('[Z1 Z0]')
+
+        # When/Then
+        self.assertEqual(op1, reverse_qubit_order(op2))
+
+        # Given
+        op1 = QubitOperator('Z0')
+        op2 = QubitOperator('Z1')
+
+        # When/Then
+        self.assertEqual(op1, reverse_qubit_order(op2, n_qubits=2))
+        self.assertEqual(op2, reverse_qubit_order(op1, n_qubits=2))
