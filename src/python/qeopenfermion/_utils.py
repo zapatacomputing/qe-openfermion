@@ -1,4 +1,6 @@
-from openfermion import QubitOperator
+from openfermion import QubitOperator, count_qubits
+from openfermion.utils import expectation as openfermion_expectation
+from openfermion.transforms import get_sparse_operator
 from pyquil.paulis import PauliSum, PauliTerm
 import numpy as np
 import random
@@ -214,7 +216,7 @@ def reverse_qubit_order(qubit_operator:QubitOperator, n_qubits:Optional[int]=Non
     Args:
         qubit_operator (openfermion.QubitOperator): the operator
         n_qubits (int): total number of qubits. Needs to be provided when 
-					the size of the system of interest is greater than the size of qubit operator.
+					the size of the system of interest is greater than the size of qubit operator (optional)
 
     Returns:
         reversed_op (openfermion.QubitOperator)
@@ -234,5 +236,47 @@ def reverse_qubit_order(qubit_operator:QubitOperator, n_qubits:Optional[int]=Non
             new_factor[0] = n_qubits - 1 - new_factor[0]
             new_term.append(tuple(new_factor))
         reversed_op += QubitOperator(tuple(new_term), qubit_operator.terms[term])
-
     return reversed_op
+
+
+def expectation(qubit_op, wavefunction, reverse_operator=True):
+	"""Get the expectation value of a qubit operator with respect to a wavefunction.
+	Args:
+		qubit_op (openfermion.ops.QubitOperator): the operator
+		wavefunction (pyquil.wavefunction.Wavefunction): the wavefunction
+		reverse_operator (boolean): whether to reverse order of qubit operator
+			before computing expectation value. This should be True if the convention
+			of the basis states used for the wavefunction is the opposite of the one in
+			the qubit operator. This is the case, e.g. when the wavefunction comes from
+			Pyquil.
+	Returns:
+		complex: the expectation value
+	"""
+	n_qubits = wavefunction.amplitudes.shape[0].bit_length() - 1
+	
+	# Convert the qubit operator to a sparse matrix. Note that the qubit indices
+	# must be reversed because OpenFermion and pyquil use different conventions
+	# for how to order the computational basis states!
+	if reverse_operator:
+		qubit_op = reverse_qubit_order(qubit_op, n_qubits=n_qubits)
+	sparse_op = get_sparse_operator(qubit_op, n_qubits=n_qubits)
+	
+	# Computer the expectation value
+	exp_val = openfermion_expectation(sparse_op, wavefunction.amplitudes)
+	return exp_val
+	
+def change_operator_type(operator, operatorType):
+	'''Take an operator and attempt to cast it to an operator of a different type
+
+	Args:
+		operator: The operator
+		operatorType: The type of the operator that the original operator is
+			cast to
+	Returns:
+		An operator with type operatorType
+	'''
+	new_operator = operatorType()
+	for op in operator.terms:
+		new_operator += operatorType(tuple(op), operator.terms[op])
+	
+	return new_operator

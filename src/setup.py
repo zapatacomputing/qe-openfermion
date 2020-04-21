@@ -26,6 +26,7 @@ setuptools.setup(
         'scipy<1.3.0', # openfermion 0.10.0 is incompatible with scipy 1.3 because of comb function
         'openfermion>=0.10.0',
         'python-rapidjson',
+        'pyquil>=2.17.0',
         'z-quantum-core'
     ]
 )
