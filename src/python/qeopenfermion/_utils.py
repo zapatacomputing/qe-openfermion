@@ -4,10 +4,11 @@ from openfermion.transforms import get_sparse_operator
 from pyquil.paulis import PauliSum, PauliTerm
 import numpy as np
 import random
-from typing import List, Union
+from typing import List, Union, Optional
 
 from zquantum.core.utils import bin2dec, dec2bin, ValueEstimate
 from zquantum.core.measurement import ExpectationValues
+from openfermion import count_qubits
 
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
 	r"""Expands a 2^n by 2^n matrix into n-qubit Pauli basis. The runtime of
@@ -209,13 +210,13 @@ def evaluate_qubit_operator(qubit_operator: QubitOperator,
 	value_estimate = ValueEstimate(total)
 	return value_estimate
 
-
-def reverse_qubit_order(qubit_operator, n_qubits=None):
+def reverse_qubit_order(qubit_operator:QubitOperator, n_qubits:Optional[int]=None):
     """Reverse the order of qubit indices in a qubit operator.
 
     Args:
         qubit_operator (openfermion.QubitOperator): the operator
-        n_qubits (int): total number of qubits (optional)
+        n_qubits (int): total number of qubits. Needs to be provided when 
+					the size of the system of interest is greater than the size of qubit operator (optional)
 
     Returns:
         reversed_op (openfermion.QubitOperator)
@@ -235,7 +236,6 @@ def reverse_qubit_order(qubit_operator, n_qubits=None):
             new_factor[0] = n_qubits - 1 - new_factor[0]
             new_term.append(tuple(new_factor))
         reversed_op += QubitOperator(tuple(new_term), qubit_operator.terms[term])
-
     return reversed_op
 
 
