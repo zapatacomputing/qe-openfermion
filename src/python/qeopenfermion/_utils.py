@@ -191,11 +191,11 @@ def evaluate_qubit_operator(qubit_operator: QubitOperator,
 	expectation values for the terms.
 
 	Args:
-		qubit_operator (core.qubitoperator.QubitOperator): the operator
+		qubit_operator (openfermion.QubitOperator): the operator
 		expectation_values (core.measurement.ExpectationValues): the expectation values
 
 	Returns:
-		value_estimate (core.utils.ValueEstimate): stores the value of the expectation and its
+		value_estimate (zquantum.core.utils.ValueEstimate): stores the value of the expectation and its
 			 precision
 	"""
 
@@ -223,12 +223,12 @@ def evaluate_operator_for_parameter_grid(ansatz, grid, backend, operator,
 			the parameters for the last layer of the ansatz
         backend (zquantum.core.interfaces.backend.QuantumSimulator): the backend 
 			to run the circuits on 
-		operator (core.qubitoperator.QubitOperator): the operator
+		operator (openfermion.ops.QubitOperator): the operator
 		previous_layer_params (array): A list of the parameters for previous layers
 			of the ansatz
 
 	Returns:
-		value_estimate (core.utils.ValueEstimate): stores the value of the expectation and its
+		value_estimate (zquantum.core.utils.ValueEstimate): stores the value of the expectation and its
 			 precision
 	"""
 	parameter_grid_evaluation = []
@@ -254,11 +254,11 @@ def reverse_qubit_order(qubit_operator, n_qubits=None):
     """Reverse the order of qubit indices in a qubit operator.
 
     Args:
-        qubit_operator (openfermion.QubitOperator): the operator
+        qubit_operator (openfermion.ops.QubitOperator): the operator
         n_qubits (int): total number of qubits (optional)
 
     Returns:
-        reversed_op (openfermion.QubitOperator)
+        reversed_op (openfermion.ops.QubitOperator)
     """
 
     reversed_op = QubitOperator()
