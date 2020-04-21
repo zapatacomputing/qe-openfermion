@@ -113,7 +113,7 @@ class TestQubitOperator(unittest.TestCase):
         # Given
         ansatz = {'ansatz_type': 'singlet UCCSD', 'ansatz_module': 'zquantum.qaoa.ansatz', 'ansatz_func': 'build_qaoa_circuit', 'ansatz_grad_func': 'build_qaoa_circuit_grads', 'supports_simple_shift_rule': False, 'ansatz_kwargs': {'hamiltonians': [{'schema': 'zapata-v1-qubit_op', 'terms': [{'pauli_ops': [], 'coefficient': {'real': 0.5}}, {'pauli_ops': [{'qubit': 1, 'op': 'Z'}], 'coefficient': {'real': 0.5}}]}, {'schema': 'zapata-v1-qubit_op', 'terms': [{'pauli_ops': [{'qubit': 0, 'op': 'X'}], 'coefficient': {'real': 1.0}}, {'pauli_ops': [{'qubit': 1, 'op': 'X'}], 'coefficient': {'real': 1.0}}]}]}, 'n_params': [2]}
         grid = build_uniform_param_grid(ansatz, 1, 0, np.pi, np.pi/10)
-        backend = create_object({'module_name': 'qeforest.simulator', 'function_name': 'ForestSimulator', 'device_name': 'wavefunction-simulator'})
+        backend = create_object({'module_name': 'zquantum.core.interfaces.mock_objects', 'function_name': 'MockQuantumSimulator'})
         op = QubitOperator('0.5 [] + 0.5 [Z1]')
         parameter_grid_evaluation = evaluate_operator_for_parameter_grid(ansatz, grid, backend, op)
         # When
