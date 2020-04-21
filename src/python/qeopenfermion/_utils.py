@@ -214,11 +214,11 @@ def reverse_qubit_order(qubit_operator, n_qubits=None):
     """Reverse the order of qubit indices in a qubit operator.
 
     Args:
-        qubit_operator (zmachine.core.qubitoperator.QubitOperator): the operator
+        qubit_operator (openfermion.QubitOperator): the operator
         n_qubits (int): total number of qubits (optional)
 
     Returns:
-        reversed_op (zmachine.core.qubitoperator.QubitOperator)
+        reversed_op (openfermion.QubitOperator)
     """
 
     reversed_op = QubitOperator()
