@@ -4,8 +4,10 @@ from openfermion.transforms import get_sparse_operator
 from pyquil.paulis import PauliSum, PauliTerm
 import numpy as np
 import random
+import copy
 from typing import List, Union, Optional
 
+from zquantum.core.circuit import build_ansatz_circuit
 from zquantum.core.utils import bin2dec, dec2bin, ValueEstimate
 from zquantum.core.measurement import ExpectationValues
 from openfermion import count_qubits
@@ -184,17 +186,18 @@ def generate_random_qubitop(nqubits: int,
 			label_set.add(str(label))
 	return get_qubitop_from_coeffs_and_labels(coeffs, labels)
 
+
 def evaluate_qubit_operator(qubit_operator: QubitOperator, 
 							expectation_values: ExpectationValues) -> ValueEstimate:
 	"""Evaluate the expectation value of a qubit operator using
 	expectation values for the terms.
 
 	Args:
-		qubit_operator (core.qubitoperator.QubitOperator): the operator
+		qubit_operator (openfermion.QubitOperator): the operator
 		expectation_values (core.measurement.ExpectationValues): the expectation values
 
 	Returns:
-		value_estimate (core.utils.ValueEstimate): stores the value of the expectation and its
+		value_estimate (zquantum.core.utils.ValueEstimate): stores the value of the expectation and its
 			 precision
 	"""
 
@@ -210,6 +213,41 @@ def evaluate_qubit_operator(qubit_operator: QubitOperator,
 	value_estimate = ValueEstimate(total)
 	return value_estimate
 
+
+def evaluate_operator_for_parameter_grid(ansatz, grid, backend, operator,
+    previous_layer_params=[]):
+	"""Evaluate the expectation value of an operator for every set of circuit
+	parameters in the parameter grid.
+
+	Args:
+		ansatz (dict): the ansatz
+		grid (zquantum.core.circuit.ParameterGrid): The parameter grid containing
+			the parameters for the last layer of the ansatz
+        backend (zquantum.core.interfaces.backend.QuantumSimulator): the backend 
+			to run the circuits on 
+		operator (openfermion.ops.QubitOperator): the operator
+		previous_layer_params (array): A list of the parameters for previous layers
+			of the ansatz
+
+	Returns:
+		value_estimate (zquantum.core.utils.ValueEstimate): stores the value of the expectation and its
+			 precision
+	"""
+	parameter_grid_evaluation = []
+	for last_layer_params in grid.params_list:
+        # Build the ansatz circuit
+		params = np.concatenate((np.asarray(previous_layer_params), np.asarray(last_layer_params)))
+
+        # Build the ansatz circuit
+		circuit = build_ansatz_circuit(ansatz, params)
+
+		expectation_values = backend.get_expectation_values(circuit, operator)
+		value_estimate = ValueEstimate(sum(expectation_values.values))
+		parameter_grid_evaluation.append({'value': value_estimate, 'parameter1': last_layer_params[0], 'parameter2': last_layer_params[1]})
+		
+	return parameter_grid_evaluation
+
+
 def reverse_qubit_order(qubit_operator:QubitOperator, n_qubits:Optional[int]=None):
     """Reverse the order of qubit indices in a qubit operator.
 
@@ -219,7 +257,7 @@ def reverse_qubit_order(qubit_operator:QubitOperator, n_qubits:Optional[int]=Non
 					the size of the system of interest is greater than the size of qubit operator (optional)
 
     Returns:
-        reversed_op (openfermion.QubitOperator)
+        reversed_op (openfermion.ops.QubitOperator)
     """
 
     reversed_op = QubitOperator()
@@ -265,6 +303,7 @@ def expectation(qubit_op, wavefunction, reverse_operator=True):
 	exp_val = openfermion_expectation(sparse_op, wavefunction.amplitudes)
 	return exp_val
 	
+
 def change_operator_type(operator, operatorType):
 	'''Take an operator and attempt to cast it to an operator of a different type
 
