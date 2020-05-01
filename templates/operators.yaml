@@ -1,0 +1,24 @@
+spec:
+  templates:
+  # get number operator
+  - name: get-number-operator
+    parent: generic-task
+    inputs:
+      parameters:
+      - name: n-qubits
+      - name: n-particles
+        default: None
+      - name: command
+        value: python3 main_script.py
+      artifacts:
+      - name: main-script
+        path: /app/main_script.py
+        raw:
+          data: |
+            from qeopenfermion import get_fermion_number_operator, save_interaction_operator
+            number_op = get_fermion_number_operator({{inputs.parameters.n-qubits}}, {{inputs.parameters.n-particles}})
+            save_interaction_operator(number_op, 'number-op.json')
+    outputs:
+      artifacts:
+      - name: number-op
+        path: /app/number-op.json
