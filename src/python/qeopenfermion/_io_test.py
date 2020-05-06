@@ -6,7 +6,7 @@ from openfermion import (
     QubitOperator, InteractionOperator, FermionOperator, IsingOperator,
     get_interaction_operator, hermitian_conjugated
 )
-from zquantum.core.circuit import build_uniform_param_grid
+from zquantum.core.circuit import build_uniform_param_grid, save_circuit_template_params
 from zquantum.core.utils import create_object
 from ._utils import evaluate_operator_for_parameter_grid
 from ._io import (
@@ -115,11 +115,12 @@ class TestQubitOperator(unittest.TestCase):
         grid = build_uniform_param_grid(ansatz, 1, 0, np.pi, np.pi/10)
         backend = create_object({'module_name': 'zquantum.core.interfaces.mock_objects', 'function_name': 'MockQuantumSimulator'})
         op = QubitOperator('0.5 [] + 0.5 [Z1]')
-        parameter_grid_evaluation = evaluate_operator_for_parameter_grid(ansatz, grid, backend, op)
+        parameter_grid_evaluation, optimal_parameters = evaluate_operator_for_parameter_grid(ansatz, grid, backend, op)
         # When
         save_parameter_grid_evaluation(parameter_grid_evaluation, "parameter-grid-evaluation.json")
+        save_circuit_template_params(optimal_parameters, "optimal-parameters.json")
         # Then 
         # TODO
 
     def tearDown(self):
-        subprocess.run(["rm", "parameter-grid-evaluation.json"])
+        subprocess.run(["rm", "parameter-grid-evaluation.json", "optimal-parameters.json"])
