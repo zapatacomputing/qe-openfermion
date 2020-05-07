@@ -232,7 +232,11 @@ def evaluate_operator_for_parameter_grid(ansatz, grid, backend, operator,
 	Returns:
 		value_estimate (zquantum.core.utils.ValueEstimate): stores the value of the expectation and its
 			 precision
+		optimal_parameters (numpy array): the ansatz parameters representing the ansatz parameters 
+			resulting in the best minimum evaluation. If multiple sets of parameters evaluate to the same value, 
+			the first set of parameters is chosen as the optimal.
 	"""
+	min_value_estimate = None
 	parameter_grid_evaluation = []
 	for last_layer_params in grid.params_list:
         # Build the ansatz circuit
@@ -244,8 +248,16 @@ def evaluate_operator_for_parameter_grid(ansatz, grid, backend, operator,
 		expectation_values = backend.get_expectation_values(circuit, operator)
 		value_estimate = ValueEstimate(sum(expectation_values.values))
 		parameter_grid_evaluation.append({'value': value_estimate, 'parameter1': last_layer_params[0], 'parameter2': last_layer_params[1]})
+
+		if min_value_estimate == None:
+			min_value_estimate = value_estimate
+			optimal_parameters = params
+		elif value_estimate.value < min_value_estimate.value:
+			min_value_estimate = value_estimate
+			optimal_parameters = params
 		
-	return parameter_grid_evaluation
+	return parameter_grid_evaluation, optimal_parameters
+
 
 
 def reverse_qubit_order(qubit_operator:QubitOperator, n_qubits:Optional[int]=None):
@@ -319,3 +331,4 @@ def change_operator_type(operator, operatorType):
 		new_operator += operatorType(tuple(op), operator.terms[op])
 	
 	return new_operator
+
