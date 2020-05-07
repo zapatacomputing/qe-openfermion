@@ -233,7 +233,8 @@ def evaluate_operator_for_parameter_grid(ansatz, grid, backend, operator,
 		value_estimate (zquantum.core.utils.ValueEstimate): stores the value of the expectation and its
 			 precision
 		optimal_parameters (numpy array): the ansatz parameters representing the ansatz parameters 
-			resulting in the best minimum evaluation
+			resulting in the best minimum evaluation. If multiple sets of parameters evaluate to the same value, 
+			the first set of parameters is chosen as the optimal.
 	"""
 	min_value_estimate = None
 	parameter_grid_evaluation = []
