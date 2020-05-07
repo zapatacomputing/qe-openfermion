@@ -55,4 +55,3 @@ This can be done by running `pip install .` from the `src/` directory.
 ### Running tests
 
 Unit tests for this project can be run using `pytest .` from the main directory.
-
