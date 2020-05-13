@@ -236,26 +236,31 @@ def evaluate_operator_for_parameter_grid(ansatz, grid, backend, operator,
 			resulting in the best minimum evaluation. If multiple sets of parameters evaluate to the same value, 
 			the first set of parameters is chosen as the optimal.
 	"""
-	min_value_estimate = None
 	parameter_grid_evaluation = []
+	circuitset = []
+	params_set = []
 	for last_layer_params in grid.params_list:
-        # Build the ansatz circuit
+		# Build the ansatz circuit
 		params = np.concatenate((np.asarray(previous_layer_params), np.asarray(last_layer_params)))
-
-        # Build the ansatz circuit
-		circuit = build_ansatz_circuit(ansatz, params)
-
-		expectation_values = backend.get_expectation_values(circuit, operator)
+		
+		# Build the ansatz circuit
+		circuitset.append(build_ansatz_circuit(ansatz, params))
+		params_set.append(params)
+		
+	expectation_values_set = backend.get_expectation_values_for_circuitset(circuitset, operator)
+	
+	min_value_estimate = None
+	for params, expectation_values in zip(params_set, expectation_values_set):
 		value_estimate = ValueEstimate(sum(expectation_values.values))
-		parameter_grid_evaluation.append({'value': value_estimate, 'parameter1': last_layer_params[0], 'parameter2': last_layer_params[1]})
-
+		parameter_grid_evaluation.append({'value': value_estimate, 'parameter1': params[-2], 'parameter2': params[-1]})
+		
 		if min_value_estimate == None:
 			min_value_estimate = value_estimate
 			optimal_parameters = params
 		elif value_estimate.value < min_value_estimate.value:
 			min_value_estimate = value_estimate
 			optimal_parameters = params
-		
+
 	return parameter_grid_evaluation, optimal_parameters
 
 
