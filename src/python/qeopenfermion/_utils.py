@@ -9,7 +9,7 @@ from typing import List, Union, Optional
 
 from zquantum.core.circuit import build_ansatz_circuit
 from zquantum.core.utils import bin2dec, dec2bin, ValueEstimate
-from zquantum.core.measurement import ExpectationValues
+from zquantum.core.measurement import ExpectationValues, expectation_values_to_real
 from openfermion import count_qubits
 
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
@@ -251,6 +251,7 @@ def evaluate_operator_for_parameter_grid(ansatz, grid, backend, operator,
 	
 	min_value_estimate = None
 	for params, expectation_values in zip(params_set, expectation_values_set):
+		expectation_values = expectation_values_to_real(expectation_values) 
 		value_estimate = ValueEstimate(sum(expectation_values.values))
 		parameter_grid_evaluation.append({'value': value_estimate, 'parameter1': params[-2], 'parameter2': params[-1]})
 		
