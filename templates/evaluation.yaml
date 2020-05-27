@@ -83,6 +83,9 @@ spec:
         path: /app/grid.json
       - name: operator
         path: /app/operator.json
+      - name: previous-parameters
+        optional: True
+        path: /app/previous_parameters.json
       - name: main-script
         path: /app/main_script.sh
         raw:
@@ -95,23 +98,32 @@ spec:
         path: /app/python_script.py
         raw:
           data: |
+            import os
             from qeopenfermion import evaluate_operator_for_parameter_grid, save_parameter_grid_evaluation, load_qubit_operator
-            from zquantum.core.circuit import load_circuit_template, load_parameter_grid
+            from zquantum.core.circuit import load_circuit_template, load_parameter_grid, load_circuit_template_params, save_circuit_template_params
             from zquantum.core.utils import create_object
 
             ansatz = load_circuit_template("ansatz.json")
             grid = load_parameter_grid("grid.json")
             backend = create_object({{inputs.parameters.backend-specs}})
             operator = load_qubit_operator("operator.json")
-            previous_layer_parameters = {{inputs.parameters.previous-layer-parameters}}
-            parameter_grid_evaluation = evaluate_operator_for_parameter_grid(ansatz,
+
+            if(os.path.isfile('previous_parameters.json')):
+              previous_layer_parameters = load_circuit_template_params('previous_parameters.json')
+            else:
+              previous_layer_parameters = {{inputs.parameters.previous-layer-parameters}}
+              
+            parameter_grid_evaluation, optimal_parameters = evaluate_operator_for_parameter_grid(ansatz,
               grid, backend, operator, previous_layer_params=previous_layer_parameters)
 
             save_parameter_grid_evaluation(parameter_grid_evaluation, "parameter-grid-evaluation.json")
+            save_circuit_template_params(optimal_parameters, '/app/optimal-parameters.json')
     outputs:
       artifacts:
       - name: parameter-grid-evaluation
         path: /app/parameter-grid-evaluation.json
+      - name: optimal-parameters
+        path: /app/optimal-parameters.json
 
   # Get ground state wavefunction in specified particle number subspace from Jordan-Wigner qubit operator
   - name: get-ground-state-at-particle-number-jw

@@ -23,7 +23,7 @@ setuptools.setup(
     install_requires=[
         'pytest>=5.3.5',
         'numpy>=1.18.1',
-        'openfermion>=0.10.0',
+        'openfermion>=0.11.0',
         'python-rapidjson',
         'pyquil>=2.17.0',
         'z-quantum-core'
