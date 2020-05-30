@@ -341,6 +341,7 @@ def change_operator_type(operator, operatorType):
 def get_fermion_number_operator(n_qubits, n_particles=None):
     """Return a FermionOperator representing the number operator
     for n qubits.
+    If `n_particles` is specified, it can be used for creating constraint on the number of particles.
 
     Args:
         n_qubits (int): number of qubits in the system
