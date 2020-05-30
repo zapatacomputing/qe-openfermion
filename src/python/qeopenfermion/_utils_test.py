@@ -6,8 +6,8 @@ import os
 import pyquil
 from pyquil.paulis import sX, sY, sZ, sI
 
-from openfermion import QubitOperator, IsingOperator
-
+from openfermion import QubitOperator, IsingOperator, FermionOperator, InteractionOperator
+from openfermion.transforms import get_interaction_operator
 from openfermion.utils import qubit_operator_sparse
 
 from ._io import (
@@ -16,7 +16,8 @@ from ._io import (
 from ._utils import (
     generate_random_qubitop, get_qubitop_from_coeffs_and_labels,
     evaluate_qubit_operator, get_qubitop_from_matrix, reverse_qubit_order,
-    expectation, change_operator_type, evaluate_operator_for_parameter_grid
+    expectation, change_operator_type, evaluate_operator_for_parameter_grid,
+    get_fermion_number_operator
 )
 
 
@@ -161,3 +162,38 @@ class TestQubitOperator(unittest.TestCase):
         self.assertEqual(QubitOperator('Z0 Z1', 4.5), new_operator2)
         self.assertEqual(QubitOperator(), new_operator3)
         self.assertEqual(QubitOperator('Z0', 0.5) + QubitOperator('Z1', 2.5), new_operator4)
+
+    def test_get_fermion_number_operator(self):
+        # Given
+        n_qubits = 4
+        n_particles = None
+        correct_operator = get_interaction_operator(FermionOperator("""
+        0.0 [] +
+        1.0 [0^ 0] +
+        1.0 [1^ 1] +
+        1.0 [2^ 2] +
+        1.0 [3^ 3]
+        """))
+
+        # When
+        number_operator = get_fermion_number_operator(n_qubits)
+
+        # Then
+        self.assertEqual(number_operator, correct_operator)
+
+        # Given
+        n_qubits = 4
+        n_particles = 2
+        correct_operator = get_interaction_operator(FermionOperator("""
+        -2.0 [] +
+        1.0 [0^ 0] +
+        1.0 [1^ 1] +
+        1.0 [2^ 2] +
+        1.0 [3^ 3]
+        """))
+
+        # When
+        number_operator = get_fermion_number_operator(n_qubits, n_particles)
+
+        # Then
+        self.assertEqual(number_operator, correct_operator)

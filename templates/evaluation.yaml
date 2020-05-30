@@ -125,3 +125,37 @@ spec:
       - name: optimal-parameters
         path: /app/optimal-parameters.json
 
+  # Get ground state wavefunction in specified particle number subspace from Jordan-Wigner qubit operator
+  - name: get-ground-state-at-particle-number-jw
+    parent: generic-task
+    inputs:
+      parameters:
+      - name: particle-number
+      - name: command
+        value: python3 main_script.py
+      artifacts:
+      - name: qubit-operator
+        path: /app/qubit_operator.json
+      - name: main-script
+        path: /app/main_script.py
+        raw:
+          data: |
+            from zquantum.core.utils import ValueEstimate, save_value_estimate
+            from qeopenfermion import load_qubit_operator
+            from openfermion.utils import qubit_operator_sparse, jw_get_ground_state_at_particle_number
+            from pyquil.wavefunction import Wavefunction
+            from zquantum.core.measurement import save_wavefunction
+            qubit_operator = load_qubit_operator('qubit_operator.json')
+            sparse_matrix = qubit_operator_sparse(qubit_operator)
+            ground_energy, ground_state_amplitudes = jw_get_ground_state_at_particle_number(sparse_matrix,{{inputs.parameters.particle-number}})
+            ground_state = Wavefunction(ground_state_amplitudes)
+            print(ground_energy)
+            save_wavefunction(ground_state, 'groundstate.json')
+            value_estimate = ValueEstimate(ground_energy)
+            save_value_estimate(value_estimate, 'value_estimate.json')
+    outputs:
+      artifacts:
+      - name: ground-state
+        path: /app/groundstate.json
+      - name: value-estimate
+        path: /app/value_estimate.json
