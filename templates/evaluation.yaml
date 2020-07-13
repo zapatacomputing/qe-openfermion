@@ -106,8 +106,8 @@ spec:
           data: |
             import os
             from qeopenfermion import evaluate_operator_for_parameter_grid, save_parameter_grid_evaluation, load_qubit_operator
-            from zquantum.core.circuit import load_circuit_template, load_parameter_grid, load_circuit_template_params, save_circuit_template_params
-            from zquantum.core.utils import create_object
+            from zquantum.core.circuit import load_circuit_template, load_parameter_grid, load_circuit_template_params, save_circuit_template_params, load_circuit_connectivity
+            from zquantum.core.utils import create_object, load_noise_model
 
             ansatz = load_circuit_template("ansatz.json")
             grid = load_parameter_grid("grid.json")
