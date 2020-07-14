@@ -10,7 +10,8 @@ from zquantum.core.circuit import build_uniform_param_grid, save_circuit_templat
 from zquantum.core.utils import create_object
 from ._utils import evaluate_operator_for_parameter_grid
 from ._io import (
-    load_qubit_operator, save_qubit_operator, load_interaction_operator,
+    load_qubit_operator, save_qubit_operator, load_qubit_operator_set, 
+    save_qubit_operator_set, load_interaction_operator,
     save_interaction_operator, convert_qubitop_to_dict, convert_dict_to_qubitop, 
     convert_interaction_op_to_dict, convert_dict_to_interaction_op,
     convert_isingop_to_dict, convert_dict_to_isingop, 
@@ -43,6 +44,17 @@ class TestQubitOperator(unittest.TestCase):
         # Then
         self.assertEqual(qubit_op, loaded_op)
         os.remove('qubit_op.json')
+        
+    def test_qubit_operator_set_io(self):
+        qubit_op1 = QubitOperator(((0, 'Y'), (3, 'X'), (8, 'Z'), (11, 'X')), 3.j)
+        qubit_op2 = QubitOperator(((0, 'Y'), (0, 'X'), (7, 'Z'), (14, 'X')), 1.j)
+        
+        qubit_operator_set = [qubit_op1, qubit_op2]
+        save_qubit_operator_set(qubit_operator_set, 'qubit_operator_set.json')
+        loaded_qubit_operator_set = load_qubit_operator_set('qubit_operator_set.json')
+        for i in range(len(qubit_operator_set)):
+            self.assertEqual(qubit_operator_set[i], loaded_qubit_operator_set[i])
+        os.remove("qubit_operator_set.json")
 
     def test_interaction_op_to_dict_io(self):
         # Given
