@@ -13,7 +13,6 @@ from zquantum.core.utils import bin2dec, dec2bin, ValueEstimate
 from zquantum.core.measurement import ExpectationValues, expectation_values_to_real
 from openfermion import count_qubits
 
-
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
     r"""Expands a 2^n by 2^n matrix into n-qubit Pauli basis. The runtime of
     this function is O(2^2n).
@@ -34,44 +33,44 @@ def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
 
     # Check if the input operator is square
     if nrows != ncols:
-        raise Exception("The input operator is not square")
+        raise Exception('The input operator is not square')
 
     # Check if the dimensions are powers of 2
-    if not (((nrows & (nrows - 1)) == 0) and nrows > 0):
-        raise Exception("The number of rows is not a power of 2")
-    if not (((ncols & (ncols - 1)) == 0) and ncols > 0):
-        raise Exception("The number of cols is not a power of 2")
+    if not ( ((nrows & (nrows-1)) == 0) and nrows > 0):
+        raise Exception('The number of rows is not a power of 2')
+    if not ( ((ncols & (ncols-1)) == 0) and ncols > 0):
+        raise Exception('The number of cols is not a power of 2')
 
-    n = int(np.log2(nrows))  # number of qubits
+    n = int(np.log2(nrows))    # number of qubits
 
-    def decode(bit_string):  # Helper function for converting any 2n-bit
-        # string to a label vector representing a Pauli
-        # string of length n
+    def decode(bit_string): # Helper function for converting any 2n-bit
+                # string to a label vector representing a Pauli
+                # string of length n
 
-        if len(bit_string) != 2 * n:
-            raise Exception("LH_expand:decode: input bit string length not 2n")
+        if len(bit_string) != 2*n:
+            raise Exception('LH_expand:decode: input bit string length not 2n')
 
         output_label = list(np.zeros(n))
         for i in range(0, n):
-            output_label[i] = bin2dec(bit_string[2 * i : 2 * i + 2])
+            output_label[i] = bin2dec(bit_string[2*i:2*i+2])
 
         return output_label
 
-    def trace_product(label_vec):  # Helper function for computing tr(OP)
-        # where O is the input operator and P is a
-        # Pauli string operator
+    def trace_product(label_vec): # Helper function for computing tr(OP)
+                # where O is the input operator and P is a
+                # Pauli string operator
 
-        def f(j):  # Function which computes the index of the nonzero
-            # element in P for a given column j
+        def f(j): # Function which computes the index of the nonzero
+                # element in P for a given column j
 
             j_str = dec2bin(j, n)
             for index in range(0, n):
-                if label_vec[index] in [1, 2]:  # flip if X or Y
+                if label_vec[index] in [1,2]: # flip if X or Y
                     j_str[index] = int(not j_str[index])
             return bin2dec(j_str)
 
-        def nz(j):  # Function which computes the value of the nonzero
-            # element in P on the column j
+        def nz(j): # Function which computes the value of the nonzero
+                # element in P on the column j
 
             val_nz = 1.0
             j_str = dec2bin(j, n)
@@ -88,16 +87,16 @@ def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
 
         # Compute the trace
         tr = 0.0
-        for j in range(0, 2 ** n):  # loop over the columns
+        for j in range(0, 2**n): # loop over the columns
             tr = tr + operator[j][f(j)] * nz(j)
 
-        return tr / 2 ** n
+        return tr / 2**n
 
     # Expand the operator in Pauli basis
-    coeffs = list(np.zeros(4 ** n))
-    labels = list(np.zeros(4 ** n))
-    for i in range(0, 4 ** n):  # loop over all 2n-bit strings
-        current_string = dec2bin(i, 2 * n)  # see util.py
+    coeffs = list(np.zeros(4**n))
+    labels = list(np.zeros(4**n))
+    for i in range(0, 4**n): # loop over all 2n-bit strings
+        current_string = dec2bin(i, 2*n) # see util.py
         current_label = decode(current_string)
         coeffs[i] = trace_product(current_label)
         labels[i] = current_label
@@ -105,9 +104,7 @@ def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
     return get_qubitop_from_coeffs_and_labels(coeffs, labels)
 
 
-def get_qubitop_from_coeffs_and_labels(
-    coeffs: List[float], labels: List[List[int]]
-) -> QubitOperator:
+def get_qubitop_from_coeffs_and_labels(coeffs: List[float], labels: List[List[int]]) -> QubitOperator:
     """Generates a QubitOperator based on a coefficient vector and
     a label matrix.
 
@@ -130,15 +127,15 @@ def get_qubitop_from_coeffs_and_labels(
 
     output = QubitOperator()
     for i in range(0, len(labels)):
-        string_term = ""
+        string_term = ''
         for ind, elem in enumerate(labels[i]):
-            pauli_symbol = ""
+            pauli_symbol = ''
             if elem == 1:
-                pauli_symbol = "X" + str(ind) + " "
+                pauli_symbol = 'X' + str(ind) + ' '
             if elem == 2:
-                pauli_symbol = "Y" + str(ind) + " "
+                pauli_symbol = 'Y' + str(ind) + ' '
             if elem == 3:
-                pauli_symbol = "Z" + str(ind) + " "
+                pauli_symbol = 'Z' + str(ind) + ' '
             string_term += pauli_symbol
 
         output += coeffs[i] * QubitOperator(string_term)
@@ -146,13 +143,11 @@ def get_qubitop_from_coeffs_and_labels(
     return output
 
 
-def generate_random_qubitop(
-    nqubits: int,
-    nterms: int,
-    nlocality: int,
-    max_coeff: float,
-    fixed_coeff: bool = False,
-) -> QubitOperator:
+def generate_random_qubitop(nqubits: int, 
+                            nterms: int, 
+                            nlocality: int, 
+                            max_coeff: float, 
+                            fixed_coeff: bool = False) -> QubitOperator:
     """Generates a Hamiltonian with term coefficients uniformly distributed
     in [-max_coeff, max_coeff].
 
@@ -181,7 +176,8 @@ def generate_random_qubitop(
     label_set = set()
     j = 0
     while j < nterms:
-        inds_nontrivial = sorted(random.sample(range(0, nqubits), nlocality))
+        inds_nontrivial = sorted(random.sample(range(0, nqubits),\
+            nlocality))
         label = list(np.zeros(nqubits, dtype=int))
         for ind in inds_nontrivial:
             label[ind] = random.randint(1, 3)
@@ -192,9 +188,8 @@ def generate_random_qubitop(
     return get_qubitop_from_coeffs_and_labels(coeffs, labels)
 
 
-def evaluate_qubit_operator(
-    qubit_operator: QubitOperator, expectation_values: ExpectationValues
-) -> ValueEstimate:
+def evaluate_qubit_operator(qubit_operator: QubitOperator, 
+                            expectation_values: ExpectationValues) -> ValueEstimate:
     """Evaluate the expectation value of a qubit operator using
     expectation values for the terms.
 
@@ -213,18 +208,15 @@ def evaluate_qubit_operator(
     # Add all non-trivial terms
     term_index = 0
     for term in qubit_operator.terms:
-        total += np.real(
-            qubit_operator.terms[term] * expectation_values.values[term_index]
-        )
+        total += np.real(qubit_operator.terms[term]*expectation_values.values[term_index])
         term_index += 1
 
     value_estimate = ValueEstimate(total)
     return value_estimate
 
 
-def evaluate_operator_for_parameter_grid(
-    ansatz, grid, backend, operator, previous_layer_params=[]
-):
+def evaluate_operator_for_parameter_grid(ansatz, grid, backend, operator,
+    previous_layer_params=[]):
     """Evaluate the expectation value of an operator for every set of circuit
     parameters in the parameter grid.
 
@@ -250,31 +242,21 @@ def evaluate_operator_for_parameter_grid(
     params_set = []
     for last_layer_params in grid.params_list:
         # Build the ansatz circuit
-        params = np.concatenate(
-            (np.asarray(previous_layer_params), np.asarray(last_layer_params))
-        )
+        params = np.concatenate((np.asarray(previous_layer_params), np.asarray(last_layer_params)))
 
         # Build the ansatz circuit
-        circuitset.append(ansatz.get_executable_circuit(params))
+        circuitset.append(build_ansatz_circuit(ansatz, params))
         params_set.append(params)
 
-    expectation_values_set = backend.get_expectation_values_for_circuitset(
-        circuitset, operator
-    )
+    expectation_values_set = backend.get_expectation_values_for_circuitset(circuitset, operator)
 
     min_value_estimate = None
     for params, expectation_values in zip(params_set, expectation_values_set):
-        expectation_values = expectation_values_to_real(expectation_values)
+        expectation_values = expectation_values_to_real(expectation_values) 
         value_estimate = ValueEstimate(sum(expectation_values.values))
-        parameter_grid_evaluation.append(
-            {
-                "value": value_estimate,
-                "parameter1": params[-2],
-                "parameter2": params[-1],
-            }
-        )
+        parameter_grid_evaluation.append({'value': value_estimate, 'parameter1': params[-2], 'parameter2': params[-1]})
 
-        if min_value_estimate is None:
+        if min_value_estimate == None:
             min_value_estimate = value_estimate
             optimal_parameters = params
         elif value_estimate.value < min_value_estimate.value:
@@ -284,7 +266,7 @@ def evaluate_operator_for_parameter_grid(
     return parameter_grid_evaluation, optimal_parameters
 
 
-def reverse_qubit_order(qubit_operator: QubitOperator, n_qubits: Optional[int] = None):
+def reverse_qubit_order(qubit_operator:QubitOperator, n_qubits:Optional[int]=None):
     """Reverse the order of qubit indices in a qubit operator.
 
     Args:
@@ -301,7 +283,7 @@ def reverse_qubit_order(qubit_operator: QubitOperator, n_qubits: Optional[int] =
     if n_qubits is None:
         n_qubits = count_qubits(qubit_operator)
     if n_qubits < count_qubits(qubit_operator):
-        raise ValueError("Invalid number of qubits specified.")
+        raise ValueError('Invalid number of qubits specified.')
 
     for term in qubit_operator.terms:
         new_term = []
@@ -327,21 +309,21 @@ def expectation(qubit_op, wavefunction, reverse_operator=True):
         complex: the expectation value
     """
     n_qubits = wavefunction.amplitudes.shape[0].bit_length() - 1
-
+    
     # Convert the qubit operator to a sparse matrix. Note that the qubit indices
     # must be reversed because OpenFermion and pyquil use different conventions
     # for how to order the computational basis states!
     if reverse_operator:
         qubit_op = reverse_qubit_order(qubit_op, n_qubits=n_qubits)
     sparse_op = get_sparse_operator(qubit_op, n_qubits=n_qubits)
-
+    
     # Computer the expectation value
     exp_val = openfermion_expectation(sparse_op, wavefunction.amplitudes)
     return exp_val
-
+    
 
 def change_operator_type(operator, operatorType):
-    """Take an operator and attempt to cast it to an operator of a different type
+    '''Take an operator and attempt to cast it to an operator of a different type
 
     Args:
         operator: The operator
@@ -349,13 +331,12 @@ def change_operator_type(operator, operatorType):
             cast to
     Returns:
         An operator with type operatorType
-    """
+    '''
     new_operator = operatorType()
     for op in operator.terms:
         new_operator += operatorType(tuple(op), operator.terms[op])
-
+    
     return new_operator
-
 
 def get_fermion_number_operator(n_qubits, n_particles=None):
     """Return a FermionOperator representing the number operator
@@ -372,5 +353,5 @@ def get_fermion_number_operator(n_qubits, n_particles=None):
     """
     operator = number_operator(n_qubits)
     if n_particles is not None:
-        operator += FermionOperator("", -1.0 * float(n_particles))
+        operator += FermionOperator('', -1.0 * float(n_particles))
     return get_interaction_operator(operator)
