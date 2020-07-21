@@ -68,7 +68,7 @@ spec:
         path: /app/main_script.py
         raw:
           data: |
-            from zquantum.core.qubitoperator import load_qubit_operator, save_qubit_operator
+            from qeopenfermion import load_qubit_operator, save_qubit_operator
             reference_qubit_operator = load_qubit_operator('reference-qubit-operator.json')
             target_qubit_operator = load_qubit_operator('target-qubit-operator.json')
             epsilon = {{inputs.parameters.epsilon}}
