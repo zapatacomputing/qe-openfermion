@@ -19,6 +19,7 @@ from zquantum.core.utils import bin2dec, dec2bin, ValueEstimate
 from zquantum.core.measurement import ExpectationValues, expectation_values_to_real
 from openfermion import count_qubits
 import itertools
+from cirq import LineQubit, GridQubit, PauliSum, PauliString, Z, Y, X
 
 
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
@@ -545,3 +546,38 @@ def get_polynomial_tensor(fermion_operator, n_qubits=None):
             tensor_dict[key][indices] = coefficient
 
     return PolynomialTensor(tensor_dict)
+
+
+def qubitop_to_paulisum(
+    qubit_operator: QubitOperator,
+    qubits: Union[List[GridQubit], List[LineQubit]] = None,
+) -> PauliSum:
+    """Convert and openfermion QubitOperator to a cirq PauliSum
+
+    Args:
+        qubit_operator (openfermion.QubitOperator): The openfermion operator to convert
+        qubits()
+
+    Returns:
+        cirq.PauliSum 
+    """
+    operator_map = {"X": X, "Y": Y, "Z": Z}
+
+    if qubits is None:
+        qubits = [GridQubit(i, 0) for i in range(count_qubits(qubit_operator))]
+
+    converted_sum = PauliSum()
+    for term, coefficient in qubit_operator.terms.items():
+
+        # Identity term
+        if len(term) == 0:
+            converted_sum += coefficient
+            continue
+
+        cirq_term = PauliString()
+        for qubit_index, operator in term:
+            cirq_term *= operator_map[operator](qubits[qubit_index])
+        converted_sum += cirq_term * coefficient
+
+    return converted_sum
+
