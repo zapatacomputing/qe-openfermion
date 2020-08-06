@@ -4,7 +4,7 @@ from openfermion import InteractionOperator, QubitOperator, IsingOperator, Symbo
 from zquantum.core.utils import (
     SCHEMA_VERSION, convert_dict_to_array, convert_array_to_dict
 )
-from typing import TextIO, Callable
+from typing import TextIO, Callable, List
 
 
 def convert_interaction_op_to_dict(op: InteractionOperator) -> dict:
@@ -143,6 +143,41 @@ def load_qubit_operator(file: TextIO) -> QubitOperator:
         data = json.load(file)
 
     return(convert_dict_to_qubitop(data))
+
+def save_qubit_operator_set(qubit_operator_set: List[QubitOperator], filename: str) -> None:
+    """Save a set of qubit operators to a file.
+    
+    Args:
+        qubit_operator_set (list): a list of QubitOperator to be saved
+        file (str): the name of the file
+    """
+    dictionary = {}
+    dictionary['schema'] = SCHEMA_VERSION+'-circuit_set'
+    dictionary['qubit_operators'] = []
+    for qubit_operator in qubit_operator_set:
+        dictionary['qubit_operators'].append(convert_qubitop_to_dict(qubit_operator))
+    with open(filename, 'w') as f:
+        f.write(json.dumps(dictionary, indent=2))
+
+def load_qubit_operator_set(file: TextIO) -> List[QubitOperator]:
+    """Load a set of qubit operators from a file.
+    
+    Args:
+        file (str or file-like object): the name of the file, or a file-like object.
+
+    Returns:
+        qubit_operator_set (list): a list of QubitOperator objects
+    """
+    if isinstance(file, str):
+        with open(file, 'r') as f:
+            data = json.load(f)
+    else:
+        data = json.load(file)
+    
+    qubit_operator_set = []
+    for qubit_operator_dict in data['qubit_operators']:
+        qubit_operator_set.append(convert_dict_to_qubitop(qubit_operator_dict))
+    return qubit_operator_set
 
 
 def convert_isingop_to_dict(op: IsingOperator) -> dict:
