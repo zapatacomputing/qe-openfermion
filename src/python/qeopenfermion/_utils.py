@@ -1,6 +1,12 @@
-from openfermion import FermionOperator, QubitOperator, count_qubits
+from openfermion import (
+    FermionOperator,
+    QubitOperator,
+    count_qubits,
+    InteractionOperator,
+    PolynomialTensor,
+)
 from openfermion.utils import expectation as openfermion_expectation
-from openfermion.utils import number_operator
+from openfermion.utils import number_operator, normal_ordered
 from openfermion.transforms import get_sparse_operator, get_interaction_operator
 from pyquil.paulis import PauliSum, PauliTerm
 import numpy as np
@@ -12,6 +18,7 @@ from zquantum.core.circuit import build_ansatz_circuit
 from zquantum.core.utils import bin2dec, dec2bin, ValueEstimate
 from zquantum.core.measurement import ExpectationValues, expectation_values_to_real
 from openfermion import count_qubits
+import itertools
 
 
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
@@ -374,3 +381,167 @@ def get_fermion_number_operator(n_qubits, n_particles=None):
     if n_particles is not None:
         operator += FermionOperator("", -1.0 * float(n_particles))
     return get_interaction_operator(operator)
+
+
+def get_diagonal_component(operator):
+    if isinstance(operator, InteractionOperator):
+        return _get_diagonal_component_interaction_operator(operator)
+    elif isinstance(operator, PolynomialTensor):
+        return _get_diagonal_component_polynomial_tensor(operator)
+    else:
+        raise TypeError(
+            f"Getting diagonal component not supported for {0}".format(type(operator))
+        )
+
+
+def _get_diagonal_component_polynomial_tensor(polynomial_tensor):
+    """Get the component of an interaction operator that is
+    diagonal in the computational basis under Jordan-Wigner
+    transformation (i.e., the terms that can be expressed
+    as products of number operators).
+    Args:
+        interaction_operator (openfermion.ops.InteractionOperator): the operator
+    
+    Returns:
+        tuple: two openfermion.ops.InteractionOperator objects. The first is the
+            diagonal component, and the second is the remainder.
+    """
+    n_modes = count_qubits(polynomial_tensor)
+    remainder_tensors = {}
+    diagonal_tensors = {}
+
+    diagonal_tensors[()] = polynomial_tensor.constant
+    for key in polynomial_tensor.n_body_tensors:
+        if key == ():
+            continue
+        remainder_tensors[key] = np.zeros((n_modes,) * len(key), complex)
+        diagonal_tensors[key] = np.zeros((n_modes,) * len(key), complex)
+
+        for indices in itertools.product(range(n_modes), repeat=len(key)):
+            creation_counts = {}
+            annihilation_counts = {}
+
+            for meta_index, index in enumerate(indices):
+                if key[meta_index] == 0:
+                    if annihilation_counts.get(index) is None:
+                        annihilation_counts[index] = 1
+                    else:
+                        annihilation_counts[index] += 1
+                elif key[meta_index] == 1:
+                    if creation_counts.get(index) is None:
+                        creation_counts[index] = 1
+                    else:
+                        creation_counts[index] += 1
+
+            term_is_diagonal = True
+            for index in creation_counts:
+                if creation_counts[index] != annihilation_counts.get(index):
+                    term_is_diagonal = False
+                    break
+            if term_is_diagonal:
+                for index in annihilation_counts:
+                    if annihilation_counts[index] != creation_counts.get(index):
+                        term_is_diagonal = False
+                        break
+            if term_is_diagonal:
+                diagonal_tensors[key][indices] = polynomial_tensor.n_body_tensors[key][
+                    indices
+                ]
+            else:
+                remainder_tensors[key][indices] = polynomial_tensor.n_body_tensors[key][
+                    indices
+                ]
+
+    return PolynomialTensor(diagonal_tensors), PolynomialTensor(remainder_tensors)
+
+
+def _get_diagonal_component_interaction_operator(interaction_operator):
+    """Get the component of an interaction operator that is
+    diagonal in the computational basis under Jordan-Wigner
+    transformation (i.e., the terms that can be expressed
+    as products of number operators).
+    Args:
+        interaction_operator (openfermion.ops.InteractionOperator): the operator
+    
+    Returns:
+        tuple: two openfermion.ops.InteractionOperator objects. The first is the
+            diagonal component, and the second is the remainder.
+    """
+
+    one_body_tensor = np.zeros(
+        interaction_operator.one_body_tensor.shape, dtype=complex
+    )
+    two_body_tensor = np.zeros(
+        interaction_operator.two_body_tensor.shape, dtype=complex
+    )
+    diagonal_op = InteractionOperator(
+        interaction_operator.constant, one_body_tensor, two_body_tensor
+    )
+
+    one_body_tensor = np.copy(interaction_operator.one_body_tensor).astype(complex)
+    two_body_tensor = np.copy(interaction_operator.two_body_tensor).astype(complex)
+    remainder_op = InteractionOperator(0.0, one_body_tensor, two_body_tensor)
+
+    n_spin_orbitals = interaction_operator.two_body_tensor.shape[0]
+
+    for p in range(n_spin_orbitals):
+        for q in range(n_spin_orbitals):
+            diagonal_op.two_body_tensor[
+                p, q, p, q
+            ] = interaction_operator.two_body_tensor[p, q, p, q]
+            diagonal_op.two_body_tensor[
+                p, q, q, p
+            ] = interaction_operator.two_body_tensor[p, q, q, p]
+            remainder_op.two_body_tensor[p, q, p, q] = 0.0
+            remainder_op.two_body_tensor[p, q, q, p] = 0.0
+
+    for p in range(n_spin_orbitals):
+        diagonal_op.one_body_tensor[p, p] = interaction_operator.one_body_tensor[p, p]
+        remainder_op.one_body_tensor[p, p] = 0.0
+
+    return diagonal_op, remainder_op
+
+
+def get_polynomial_tensor(fermion_operator, n_qubits=None):
+    r"""Convert a fermionic operator to a Polynomial Tensor.
+
+    Args:
+        fermion_operator (openferion.ops.FermionOperator): The operator.
+        n_qubits (int): The number of qubits to be included in the
+            PolynomialTensor. Must be at least equal to the number of qubits
+            that are acted on by fermion_operator. If None, then the number of
+            qubits is inferred from fermion_operator.
+    
+    Returns:
+        openfermion.ops.PolynomialTensor: The tensor representation of the
+            operator.
+    """
+    if not isinstance(fermion_operator, FermionOperator):
+        raise TypeError("Input must be a FermionOperator.")
+
+    if n_qubits is None:
+        n_qubits = count_qubits(fermion_operator)
+    if n_qubits < count_qubits(fermion_operator):
+        raise ValueError("Invalid number of qubits specified.")
+
+    # Normal order the terms and initialize.
+    fermion_operator = normal_ordered(fermion_operator)
+    tensor_dict = {}
+
+    # Loop through terms and assign to matrix.
+    for term in fermion_operator.terms:
+        coefficient = fermion_operator.terms[term]
+
+        # Handle constant shift.
+        if len(term) == 0:
+            tensor_dict[()] = coefficient
+
+        else:
+            key = tuple([operator[1] for operator in term])
+            if tensor_dict.get(key) is None:
+                tensor_dict[key] = np.zeros((n_qubits,) * len(key), complex)
+
+            indices = tuple([operator[0] for operator in term])
+            tensor_dict[key][indices] = coefficient
+
+    return PolynomialTensor(tensor_dict)

@@ -11,8 +11,13 @@ from openfermion import (
     IsingOperator,
     FermionOperator,
     InteractionOperator,
+    PolynomialTensor,
 )
-from openfermion.transforms import get_interaction_operator
+from openfermion.transforms import (
+    get_interaction_operator,
+    get_fermion_operator,
+    jordan_wigner,
+)
 from openfermion.utils import qubit_operator_sparse
 
 from ._io import convert_qubitop_to_dict, save_qubit_operator, load_qubit_operator
@@ -26,6 +31,8 @@ from ._utils import (
     change_operator_type,
     evaluate_operator_for_parameter_grid,
     get_fermion_number_operator,
+    get_diagonal_component,
+    get_polynomial_tensor,
 )
 
 
@@ -234,3 +241,48 @@ class TestQubitOperator(unittest.TestCase):
 
         # Then
         self.assertEqual(number_operator, correct_operator)
+
+
+class TestOtherUtils(unittest.TestCase):
+    def test_get_diagonal_component_polynomial_tensor(self):
+        fermion_op = FermionOperator("0^ 1^ 2^ 0 1 2", 1.0)
+        fermion_op += FermionOperator("0^ 1^ 2^ 0 1 3", 2.0)
+        fermion_op += FermionOperator((), 3.0)
+        polynomial_tensor = get_polynomial_tensor(fermion_op)
+        diagonal_op, remainder_op = get_diagonal_component(polynomial_tensor)
+        self.assertTrue((diagonal_op + remainder_op) == polynomial_tensor)
+        diagonal_qubit_op = jordan_wigner(get_fermion_operator(diagonal_op))
+        remainder_qubit_op = jordan_wigner(get_fermion_operator(remainder_op))
+        for term in diagonal_qubit_op.terms:
+            for pauli in term:
+                self.assertTrue(pauli[1] == "Z")
+        for term in remainder_qubit_op.terms:
+            is_diagonal = True
+            for pauli in term:
+                if pauli[1] != "Z":
+                    is_diagonal = False
+                    break
+            self.assertFalse(is_diagonal)
+
+    def test_get_diagonal_component_interaction_op(self):
+        fermion_op = FermionOperator("1^ 1", 0.5)
+        fermion_op += FermionOperator("2^ 2", 0.5)
+        fermion_op += FermionOperator("1^ 2^ 0 3", 0.5)
+        diagonal_op, remainder_op = get_diagonal_component(
+            get_interaction_operator(fermion_op)
+        )
+        self.assertTrue(
+            (diagonal_op + remainder_op) == get_interaction_operator(fermion_op)
+        )
+        diagonal_qubit_op = jordan_wigner(diagonal_op)
+        remainder_qubit_op = jordan_wigner(remainder_op)
+        for term in diagonal_qubit_op.terms:
+            for pauli in term:
+                self.assertTrue(pauli[1] == "Z")
+        is_diagonal = True
+        for term in remainder_qubit_op.terms:
+            for pauli in term:
+                if pauli[1] != "Z":
+                    is_diagonal = False
+                    break
+        self.assertFalse(is_diagonal)
