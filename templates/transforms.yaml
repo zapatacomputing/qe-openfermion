@@ -18,7 +18,8 @@ spec:
             import os
             from qeopenfermion import load_interaction_operator, save_qubit_operator
             from openfermion import jordan_wigner, bravyi_kitaev, get_fermion_operator
-
+            import time
+            from zquantum.core.utils import save_timing
             input_op = load_interaction_operator('input-op.json')
 
             if '{{inputs.parameters.transformation}}' == 'Jordan-Wigner':
@@ -29,10 +30,16 @@ spec:
             else:
               raise RuntimeException('Unrecognized transformation {{inputs.parameters.transformation}}')
             
+            start_time = time.time()            
             transformed_op = transformation(input_op)
+            walltime = time.time() - start_time
 
             save_qubit_operator(transformed_op, 'transformed-op.json')
+            save_timing(walltime, "timing.json")
+
     outputs:
       artifacts:
       - name: transformed-op
         path: /app/transformed-op.json
+      - name: timing
+        path: /app/timing.json
