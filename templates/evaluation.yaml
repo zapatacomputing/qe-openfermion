@@ -28,11 +28,11 @@ spec:
             from zquantum.core.circuit import load_circuit
             from zquantum.core.utils import create_object
             from qeopenfermion import load_qubit_operator
-             circuit = load_circuit('circuit.json')
-             operator = load_qubit_operator('qubitop.json')
-             backend_specs = {{inputs.parameters.backend-specs}}
+            circuit = load_circuit('circuit.json')
+            operator = load_qubit_operator('qubitop.json')
+            backend_specs = {{inputs.parameters.backend-specs}}
             backend = create_object(backend_specs)
-             expectation_values = backend.get_expectation_values(circuit, operator)
+            expectation_values = backend.get_expectation_values(circuit, operator)
             save_expectation_values(expectation_values, 'expectation_values.json')
     outputs:
       artifacts:
