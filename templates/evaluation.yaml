@@ -33,7 +33,7 @@ spec:
             backend_specs = {{inputs.parameters.backend-specs}}
             backend = create_object(backend_specs)
             expectation_values = backend.get_expectation_values(circuit, operator)
-            save_expectation_values(expectation_values, 'expectation_values.json')
+            save_expectation_values(expectation_values.values, 'expectation_values.json')
     outputs:
       artifacts:
       - name: expectation-values
