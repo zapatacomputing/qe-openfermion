@@ -29,6 +29,7 @@ from ._utils import (
     reverse_qubit_order,
     expectation,
     change_operator_type,
+    parameterized_quantum_circuit_grid_search,
     evaluate_operator_for_parameter_grid,
     get_fermion_number_operator,
     get_diagonal_component,
@@ -148,6 +149,43 @@ class TestQubitOperator(unittest.TestCase):
         self.assertEqual(len(optimal_parameters), 4)
         self.assertEqual(optimal_parameters[0], 1)
         self.assertEqual(optimal_parameters[1], 1)
+
+    def test_parameterized_quantum_circuit_grid_search(self):
+        # Given
+        ansatz = MockAnsatz(2, 1)
+        parameterized_quantum_circuit = ansatz.parametrized_circuit
+        grid = build_uniform_param_grid(2, 1, 0, np.pi, np.pi / 10)
+        backend = create_object(
+            {
+                "module_name": "zquantum.core.interfaces.mock_objects",
+                "function_name": "MockQuantumSimulator",
+            }
+        )
+        op = QubitOperator("0.5 [] + 0.5 [Z1]")
+        # When
+        (
+            parameter_grid_evaluation,
+            optimal_parameters,
+        ) = parameterized_quantum_circuit_grid_search(
+            parameterized_quantum_circuit, grid, backend, op
+        )
+
+        # Then, for brevity, only check first and last evaluations)
+        self.assertIsInstance(parameter_grid_evaluation[0]["value"].value, float)
+        self.assertEqual(parameter_grid_evaluation[0]["parameters"][0], 0)
+        self.assertEqual(parameter_grid_evaluation[0]["parameters"][1], 0)
+
+        self.assertIsInstance(parameter_grid_evaluation[99]["value"].value, float)
+        self.assertEqual(
+            parameter_grid_evaluation[99]["parameters"][0], np.pi - np.pi / 10
+        )
+        self.assertEqual(
+            parameter_grid_evaluation[99]["parameters"][1], np.pi - np.pi / 10
+        )
+
+        self.assertEqual(len(optimal_parameters), 2)
+        self.assertIsInstance(optimal_parameters[0], float)
+        self.assertIsInstance(optimal_parameters[1], float)
 
     def test_reverse_qubit_order(self):
         # Given

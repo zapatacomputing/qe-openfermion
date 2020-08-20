@@ -159,3 +159,53 @@ spec:
         path: /app/groundstate.json
       - name: value-estimate
         path: /app/value_estimate.json
+
+  # Evaluate a parameterized quantum circuit wrt a cost hamiltonian for every point in a parameter grid 
+  - name: parameterized-quantum-circuit-grid-search
+    parent: generic-task
+    inputs:
+      parameters:
+      - name: backend-specs
+      - name: command
+        value: bash main_script.sh
+      artifacts:
+      - name: circuit
+        path: /app/circuit.json
+      - name: grid
+        path: /app/grid.json
+      - name: operator
+        path: /app/operator.json
+      - name: main-script
+        path: /app/main_script.sh
+        raw:
+          data: |
+            qvm -S &
+            quilc -S &
+            source /app/usr/local/bin/compilers_and_libraries.sh
+            python3 python_script.py
+      - name: python-script
+        path: /app/python_script.py
+        raw:
+          data: |
+            import os
+            from qeopenfermion import parameterized_quantum_circuit_grid_search, save_parameter_grid_evaluation, load_qubit_operator
+            from zquantum.core.circuit import load_circuit, load_parameter_grid, save_circuit_template_params
+            from zquantum.core.utils import create_object
+
+            circuit = load_circuit("circuit.json")
+            grid = load_parameter_grid("grid.json")
+            operator = load_qubit_operator("operator.json")
+
+            backend = create_object({{inputs.parameters.backend-specs}})
+              
+            parameter_grid_evaluation, optimal_parameters = parameterized_quantum_circuit_grid_search(circuit,
+              grid, backend, operator)
+
+            save_parameter_grid_evaluation(parameter_grid_evaluation, "parameter-grid-evaluation.json")
+            save_circuit_template_params(optimal_parameters, '/app/optimal-parameters.json')
+    outputs:
+      artifacts:
+      - name: parameter-grid-evaluation
+        path: /app/parameter-grid-evaluation.json
+      - name: optimal-parameters
+        path: /app/optimal-parameters.json

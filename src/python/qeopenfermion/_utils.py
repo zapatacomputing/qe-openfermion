@@ -15,7 +15,7 @@ import copy
 from typing import List, Union, Optional
 
 from zquantum.core.circuit import build_ansatz_circuit
-from zquantum.core.utils import bin2dec, dec2bin, ValueEstimate
+from zquantum.core.utils import bin2dec, dec2bin, ValueEstimate, create_symbols_map
 from zquantum.core.measurement import ExpectationValues, expectation_values_to_real
 from openfermion import count_qubits
 import itertools
@@ -227,6 +227,56 @@ def evaluate_qubit_operator(
 
     value_estimate = ValueEstimate(total)
     return value_estimate
+
+
+def parameterized_quantum_circuit_grid_search(circuit, grid, backend, operator):
+    """Evaluate the expectation value of an operator for every set of circuit
+    parameters in the parameter grid.
+
+    Args:
+        circuit (zquantum.core.Circuit): the parameterized quantum circuit
+        grid (zquantum.core.circuit.ParameterGrid): The parameter grid containing
+            the parameters for the last layer of the ansatz
+        backend (zquantum.core.interfaces.backend.QuantumSimulator): the backend 
+            to run the circuits on 
+        operator (openfermion.ops.QubitOperator): the operator
+
+    Returns:
+        parameter grid evaluation (List[{"value": zquantum.core.utils.ValueEstimate, "parameters": List[float]}): 
+            List of objects storing the estimated expectation value of the operator and the parameters for the PQC
+        optimal_parameters (numpy array): the optimal circuit parameters. If multiple sets of parameters evaluate
+            to the same value, the first set of parameters is chosen as the optimal.
+    """
+    executable_circuits = []
+    circuit_parameters_set = []
+    for circuit_parameters in grid.params_list:
+        symbols_map = create_symbols_map(circuit.symbolic_params, circuit_parameters)
+        executable_circuits.append(circuit.evaluate(symbols_map))
+        circuit_parameters_set.append(circuit_parameters)
+
+    expectation_values_set = backend.get_expectation_values_for_circuitset(
+        executable_circuits, operator
+    )
+
+    parameter_grid_evaluation = []
+    min_value_estimate = None
+    for circuit_parameters, expectation_values in zip(
+        circuit_parameters_set, expectation_values_set
+    ):
+        expectation_values = expectation_values_to_real(expectation_values)
+        value_estimate = ValueEstimate(sum(expectation_values.values))
+        parameter_grid_evaluation.append(
+            {"value": value_estimate, "parameters": circuit_parameters}
+        )
+
+        if min_value_estimate is None:
+            min_value_estimate = value_estimate
+            optimal_parameters = circuit_parameters
+        elif value_estimate.value < min_value_estimate.value:
+            min_value_estimate = value_estimate
+            optimal_parameters = circuit_parameters
+
+    return parameter_grid_evaluation, optimal_parameters
 
 
 def evaluate_operator_for_parameter_grid(
