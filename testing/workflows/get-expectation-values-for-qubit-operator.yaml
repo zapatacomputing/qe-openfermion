@@ -6,12 +6,12 @@ resources:
   type: git
   parameters:
     url: "git@github.com:zapatacomputing/z-quantum-core.git"
-    branch: "dev"
+    branch: "master"
 - name: qe-openfermion
   type: git
   parameters:
     url: "git@github.com:zapatacomputing/qe-openfermion.git"
-    branch: "fix-templates"
+    branch: "dev"
 
 metadata:
   generateName: qe-openfermion-acceptance-test-get-exp-vals-
