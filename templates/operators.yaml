@@ -87,13 +87,13 @@ spec:
         parameters:
           - name: command
             value: python3 main_script.py
-          - name: i-coef
+          - name: i-coeff
             default: "1.0"
-          - name: x-coef
+          - name: x-coeff
             default: "1.0"
-          - name: y-coef
+          - name: y-coeff
             default: "1.0"
-          - name: z-coef
+          - name: z-coeff
             default: "1.0"
           - name: command
             value: python3 main_script.py
@@ -105,11 +105,11 @@ spec:
                 from qeopenfermion import save_qubit_operator
                 from openfermion import QubitOperator
 
-                i_coef = float({{inputs.parameters.i-component}})
-                x_coef = float({{inputs.parameters.x-component}})
-                y_coef = float({{inputs.parameters.y-component}})
-                z_coef = float({{inputs.parameters.z-component}})
-                qubit_operator = i_coef*QubitOperator('I0') + x_coef*QubitOperator('X0') + y_coef*QubitOperator('Y0') + z_coef*QubitOperator('Z0')
+                i_coeff = float({{inputs.parameters.i-coeff}})
+                x_coeff = float({{inputs.parameters.x-coeff}})
+                y_coeff = float({{inputs.parameters.y-coeff}})
+                z_coeff = float({{inputs.parameters.z-coeff}})
+                qubit_operator = i_coeff*QubitOperator('I0') + x_coeff*QubitOperator('X0') + y_coeff*QubitOperator('Y0') + z_coeff*QubitOperator('Z0')
                 save_qubit_operator(ubit_operator, 'qubit_operator.json')
       outputs:
         artifacts:
