@@ -107,7 +107,7 @@ spec:
                 y_coeff = float({{inputs.parameters.y-coeff}})
                 z_coeff = float({{inputs.parameters.z-coeff}})
                 qubit_operator = x_coeff*QubitOperator('X0') + y_coeff*QubitOperator('Y0') + z_coeff*QubitOperator('Z0')
-                save_qubit_operator(ubit_operator, 'qubit_operator.json')
+                save_qubit_operator(qubit_operator, 'qubit_operator.json')
       outputs:
         artifacts:
           - name: qubit-operator
