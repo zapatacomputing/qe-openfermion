@@ -9,6 +9,11 @@ from qeopenfermion import (
 
 
 def get_number_operator(number_of_qubits, number_of_particles="None"):
+    if number_of_particles is "None":
+        number_of_particles = None
+    else:
+        number_of_particles = int(number_of_particles)
+
     number_op = get_fermion_number_operator(number_of_qubits, number_of_particles)
     save_interaction_operator(number_op, "number-op.json")
 
