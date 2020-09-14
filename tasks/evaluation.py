@@ -25,7 +25,7 @@ def get_expectation_values_for_qubit_operator(backend_specs, circuit, qubit_oper
     qubit_operator = load_qubit_operator(qubit_operator)
     backend = create_object(json.loads(backend_specs))
     expectation_values = backend.get_expectation_values(circuit, qubit_operator)
-    save_expectation_values(expectation_values, "expectation_values.json")
+    save_expectation_values(expectation_values, "expectation-values.json")
 
 
 def get_parameter_grid_evaluation_for_qubit_operator(
@@ -70,5 +70,5 @@ def get_ground_state_at_particle_number_jw(particle_number, qubit_operator):
     print(ground_energy)
     value_estimate = ValueEstimate(ground_energy)
 
-    save_wavefunction(ground_state, "groundstate.json")
-    save_value_estimate(value_estimate, "value_estimate.json")
+    save_wavefunction(ground_state, "ground-state.json")
+    save_value_estimate(value_estimate, "value-estimate.json")
