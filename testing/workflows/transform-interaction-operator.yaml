@@ -1,0 +1,43 @@
+ZapOSApiVersion: v1alpha1
+kind: Workflow
+
+resources:
+- name: z-quantum-core
+  type: git
+  parameters:
+    url: "git@github.com:zapatacomputing/z-quantum-core.git"
+    branch: "master"
+- name: qe-openfermion
+  type: git
+  parameters:
+    url: "git@github.com:zapatacomputing/qe-openfermion.git"
+    branch: "dev"
+
+metadata:
+  generateName: qe-openfermion-acceptance-test-transform-interop-
+
+spec:
+  entrypoint: main
+  arguments:
+    parameters:
+    - s3-bucket: quantum-engine
+    - s3-key: testing/acceptance-tests/
+
+  templates:
+  - name: main
+    steps:
+    - - name: get-operator
+        template: get-number-operator
+        arguments:
+          parameters:
+            - n-qubits: "4"
+            - resources: [z-quantum-core, qe-openfermion]
+    - - name: test
+        template: transform-interaction-operator
+        arguments:
+          parameters:
+            - transformation: "Jordan-Wigner"
+            - resources: [z-quantum-core, qe-openfermion]
+          artifacts:
+            - input-op:
+                from: "{{steps.get-operator.outputs.artifacts.number-op}}"
