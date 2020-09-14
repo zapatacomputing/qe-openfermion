@@ -9,7 +9,7 @@ from qeopenfermion import (
 
 
 def get_number_operator(number_of_qubits, number_of_particles="None"):
-    if number_of_particles is "None":
+    if number_of_particles == "None":
         number_of_particles = None
     else:
         number_of_particles = int(number_of_particles)
