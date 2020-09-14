@@ -1,0 +1,131 @@
+# Workflow API version
+apiVersion: io.orquestra.workflow/1.0.0
+
+# Prefix for workflow ID
+name: interpolate-operators
+
+imports:
+- name: z-quantum-core
+  type: git
+  parameters:
+    repository: "git@github.com:zapatacomputing/z-quantum-core.git"
+    branch: "workflow-v1"
+- name: qe-openfermion
+  type: git
+  parameters:
+    repository: "git@github.com:zapatacomputing/qe-openfermion.git"
+    branch: "workflow-v1"
+
+steps:
+- name: get-operator-1
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core, qe-openfermion]
+      parameters:
+        file: qe-openfermion/tasks/operators.py
+        function: get_number_operator
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - number_of_qubits: 4
+    type: int
+  - number_of_particles: "None"
+    type: string
+  outputs:
+  - name: number-operator
+    type: interaction-operator
+
+- name: transform-operator-1
+  passed: [get-operator-1]
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core, qe-openfermion]
+      parameters:
+        file: qe-openfermion/tasks/transforms.py
+        function: transform_interaction_operator
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - transformation: "Jordan-Wigner"
+    type: string
+  - input_operator: ((get-operator-1.number-operator))
+    type: interaction-operator
+  outputs:
+  - name: transformed-operator
+    type: qubit-operator
+
+- name: get-operator-2
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core, qe-openfermion]
+      parameters:
+        file: qe-openfermion/tasks/operators.py
+        function: get_number_operator
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - number_of_qubits: 4
+    type: int
+  - number_of_particles: "2"
+    type: string
+  outputs:
+  - name: number-operator
+    type: interaction-operator
+
+- name: transform-operator-2
+  passed: [get-operator-2]
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core, qe-openfermion]
+      parameters:
+        file: qe-openfermion/tasks/transforms.py
+        function: transform_interaction_operator
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - transformation: "Jordan-Wigner"
+    type: string
+  - input_operator: ((get-operator-2.number-operator))
+    type: interaction-operator
+  outputs:
+  - name: transformed-operator
+    type: qubit-operator
+
+- name: interpolate-qubit-operators
+  passed: [transform-operator-1, transform-operator-2]
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core, qe-openfermion]
+      parameters:
+        file: qe-openfermion/tasks/operators.py
+        function: interpolate_qubit_operators
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - reference_qubit_operator: ((transform-operator-1.transformed-operator))
+    type: qubit-operator
+  - target_qubit_operator: ((transform-operator-2.transformed-operator))
+    type: qubit-operator
+  - epsilon: 0.6
+    type: float
+  outputs:
+  - name: qubit-operator
+    type: qubit-operator
+types:
+- interaction-operator
+- qubit-operator
