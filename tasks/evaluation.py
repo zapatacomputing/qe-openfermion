@@ -42,8 +42,8 @@ def get_parameter_grid_evaluation_for_qubit_operator(
     grid = load_parameter_grid(grid)
     operator = load_qubit_operator(operator)
 
-    if fixed_parameters is not "None":
-        if type(fixed_parameters) == str:
+    if fixed_parameters != "None":
+        if os.path.exists(fixed_parameters):
             fixed_parameters = load_circuit_template_params(fixed_parameters)
     else:
         fixed_parameters = []
