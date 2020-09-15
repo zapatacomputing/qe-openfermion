@@ -33,8 +33,7 @@ def get_parameter_grid_evaluation_for_qubit_operator(
     backend_specs,
     grid,
     operator,
-    previous_layer_parameters=[],
-    previous_parameters="None",
+    fixed_parameters="None",
 ):
 
     ansatz = create_object(json.loads(ansatz_specs))
@@ -43,14 +42,17 @@ def get_parameter_grid_evaluation_for_qubit_operator(
     grid = load_parameter_grid(grid)
     operator = load_qubit_operator(operator)
 
-    if previous_parameters is not "None":
-        previous_layer_parameters = load_circuit_template_params(previous_parameters)
+    if fixed_parameters is not "None":
+        if type(fixed_parameters) == str:
+            fixed_parameters = load_circuit_template_params(fixed_parameters)
+    else:
+        fixed_parameters = []
 
     (
         parameter_grid_evaluation,
         optimal_parameters,
     ) = evaluate_operator_for_parameter_grid(
-        ansatz, grid, backend, operator, previous_layer_params=previous_layer_parameters
+        ansatz, grid, backend, operator, previous_layer_params=fixed_parameters
     )
 
     save_parameter_grid_evaluation(
