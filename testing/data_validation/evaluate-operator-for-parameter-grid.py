@@ -26,12 +26,12 @@ for key in workflowresult.keys():
         )
         assert len(workflowresult[key]["optimal-parameters"]["parameters"]["real"]) == 2
         assert (
-            workflowresult[key]["optimal-parameters"]["parameters"]["real"][0]
-            == 1.8840000000000008
+            type(workflowresult[key]["optimal-parameters"]["parameters"]["real"][0])
+            == float
         )
         assert (
-            workflowresult[key]["optimal-parameters"]["parameters"]["real"][1]
-            == -1.5699999999999998
+            type(workflowresult[key]["optimal-parameters"]["parameters"]["real"][1])
+            == float
         )
 
         assert (
