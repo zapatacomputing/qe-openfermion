@@ -66,7 +66,7 @@ steps:
       type: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit_tasks.py
+        file: z-quantum-core/tasks/circuit.py
         function: build_uniform_parameter_grid
     resources:
       cpu: "1000m"
