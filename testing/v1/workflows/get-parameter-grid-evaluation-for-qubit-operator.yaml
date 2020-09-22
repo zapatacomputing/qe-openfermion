@@ -23,7 +23,7 @@ steps:
       language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
-        file: qe-openfermion/tasks/operators.py
+        file: qe-openfermion/steps/operators.py
         function: get_number_operator
     resources:
       cpu: "1000m"
@@ -45,7 +45,7 @@ steps:
       language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
-        file: qe-openfermion/tasks/transforms.py
+        file: qe-openfermion/steps/transforms.py
         function: transform_interaction_operator
     resources:
       cpu: "1000m"
@@ -66,7 +66,7 @@ steps:
       language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: build_uniform_parameter_grid
     resources:
       cpu: "1000m"
@@ -96,7 +96,7 @@ steps:
       language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
-        file: qe-openfermion/tasks/evaluation.py
+        file: qe-openfermion/steps/evaluation.py
         function: get_parameter_grid_evaluation_for_qubit_operator
     resources:
       cpu: "1000m"
@@ -126,7 +126,7 @@ steps:
       language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
-        file: qe-openfermion/tasks/evaluation.py
+        file: qe-openfermion/steps/evaluation.py
         function: get_parameter_grid_evaluation_for_qubit_operator
     resources:
       cpu: "1000m"
