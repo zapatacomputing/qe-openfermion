@@ -20,7 +20,7 @@ steps:
 - name: get-operator-1
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
         file: qe-openfermion/tasks/operators.py
@@ -42,7 +42,7 @@ steps:
   passed: [get-operator-1]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
         file: qe-openfermion/tasks/transforms.py
@@ -63,7 +63,7 @@ steps:
 - name: get-operator-2
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
         file: qe-openfermion/tasks/operators.py
@@ -85,7 +85,7 @@ steps:
   passed: [get-operator-2]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
         file: qe-openfermion/tasks/transforms.py
@@ -107,7 +107,7 @@ steps:
   passed: [transform-operator-1, transform-operator-2]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
         file: qe-openfermion/tasks/operators.py

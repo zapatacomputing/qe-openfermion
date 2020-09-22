@@ -20,7 +20,7 @@ steps:
 - name: get-operator
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
         file: qe-openfermion/tasks/operators.py
@@ -42,7 +42,7 @@ steps:
   passed: [get-operator]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
         file: qe-openfermion/tasks/transforms.py
@@ -63,7 +63,7 @@ steps:
 - name: get-grid
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
         file: z-quantum-core/tasks/circuit.py
@@ -93,7 +93,7 @@ steps:
   passed: [transform-operator, get-grid]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
         file: qe-openfermion/tasks/evaluation.py
@@ -123,7 +123,7 @@ steps:
   passed: [transform-operator, get-grid]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
         file: qe-openfermion/tasks/evaluation.py
