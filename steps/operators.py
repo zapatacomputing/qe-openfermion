@@ -1,6 +1,6 @@
 from qeopenfermion import (
-    get_fermion_number_operator,
-    get_diagonal_component,
+    get_fermion_number_operator as _get_fermion_number_operator,
+    get_diagonal_component as _get_diagonal_component,
     save_interaction_operator,
     load_interaction_operator,
     load_qubit_operator,
@@ -8,19 +8,19 @@ from qeopenfermion import (
 )
 
 
-def get_number_operator(number_of_qubits, number_of_particles="None"):
+def get_fermion_number_operator(number_of_qubits, number_of_particles="None"):
     if number_of_particles == "None":
         number_of_particles = None
     else:
         number_of_particles = int(number_of_particles)
 
-    number_op = get_fermion_number_operator(number_of_qubits, number_of_particles)
+    number_op = _get_fermion_number_operator(number_of_qubits, number_of_particles)
     save_interaction_operator(number_op, "number-operator.json")
 
 
-def get_diagonal_component_of_interaction_operator(interaction_operator):
+def get_diagonal_component(interaction_operator):
     interaction_operator = load_interaction_operator(interaction_operator)
-    diagonal_operator, remainder_operator = get_diagonal_component(interaction_operator)
+    diagonal_operator, remainder_operator = _get_diagonal_component(interaction_operator)
     save_interaction_operator(diagonal_operator, "diagonal-operator.json")
     save_interaction_operator(remainder_operator, "remainder-operator.json")
 

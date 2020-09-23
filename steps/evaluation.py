@@ -8,12 +8,12 @@ from zquantum.core.circuit import (
 from zquantum.core.utils import create_object, ValueEstimate, save_value_estimate
 from qeopenfermion import (
     load_qubit_operator,
-    evaluate_operator_for_parameter_grid,
+    evaluate_operator_for_parameter_grid as _evaluate_operator_for_parameter_grid,
     save_parameter_grid_evaluation,
 )
 from openfermion.utils import (
     qubit_operator_sparse,
-    jw_get_ground_state_at_particle_number,
+    jw_get_ground_state_at_particle_number as _jw_get_ground_state_at_particle_number,
 )
 from pyquil.wavefunction import Wavefunction
 import json
@@ -28,7 +28,7 @@ def get_expectation_values_for_qubit_operator(backend_specs, circuit, qubit_oper
     save_expectation_values(expectation_values, "expectation-values.json")
 
 
-def get_parameter_grid_evaluation_for_qubit_operator(
+def evaluate_operator_for_parameter_grid(
     ansatz_specs,
     backend_specs,
     grid,
@@ -52,7 +52,7 @@ def get_parameter_grid_evaluation_for_qubit_operator(
     (
         parameter_grid_evaluation,
         optimal_parameters,
-    ) = evaluate_operator_for_parameter_grid(
+    ) = _evaluate_operator_for_parameter_grid(
         ansatz, grid, backend, operator, previous_layer_params=fixed_parameters
     )
 
@@ -62,15 +62,14 @@ def get_parameter_grid_evaluation_for_qubit_operator(
     save_circuit_template_params(optimal_parameters, "/app/optimal-parameters.json")
 
 
-def get_ground_state_at_particle_number_jw(particle_number, qubit_operator):
+def jw_get_ground_state_at_particle_number(particle_number, qubit_operator):
     qubit_operator = load_qubit_operator(qubit_operator)
     sparse_matrix = qubit_operator_sparse(qubit_operator)
 
-    ground_energy, ground_state_amplitudes = jw_get_ground_state_at_particle_number(
+    ground_energy, ground_state_amplitudes = _jw_get_ground_state_at_particle_number(
         sparse_matrix, particle_number
     )
     ground_state = Wavefunction(ground_state_amplitudes)
-    print(ground_energy)
     value_estimate = ValueEstimate(ground_energy)
 
     save_wavefunction(ground_state, "ground-state.json")
