@@ -16,7 +16,7 @@ imports:
 - name: qe-openfermion
   type: git
   parameters:
-    url: "git@github.com:zapatacomputing/qe-openfermion.git"
+    repository: "git@github.com:zapatacomputing/qe-openfermion.git"
     branch: "master"
 ```
 
