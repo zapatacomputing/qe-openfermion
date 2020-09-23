@@ -9,12 +9,12 @@ imports:
   type: git
   parameters:
     repository: "git@github.com:zapatacomputing/z-quantum-core.git"
-    branch: "workflow-v1"
+    branch: dev
 - name: qe-openfermion
   type: git
   parameters:
     repository: "git@github.com:zapatacomputing/qe-openfermion.git"
-    branch: "workflow-v1"
+    branch: dev
 
 steps:
 - name: get-operator-1
