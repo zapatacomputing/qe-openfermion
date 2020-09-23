@@ -2,9 +2,9 @@
 
 ## What is it?
 
-`qe-openfermion` is an [Orquestra](https://www.zapatacomputing.com/orquestra/) resource that allows workflows to use the [OpenFermion](https://github.com/quantumlib/OpenFermion) library.
+`qe-openfermion` is an [Orquestra](https://www.orquestra.io) resource that allows workflows to use the [OpenFermion](https://github.com/quantumlib/OpenFermion) library.
 
-[Orquestra](https://www.zapatacomputing.com/orquestra/) is a platform for performing computations on quantum computers developed by [Zapata Computing](https://www.zapatacomputing.com).
+[Orquestra](https://www.orquestra.io) is a platform for performing computations on quantum computers developed by [Zapata Computing](https://www.zapatacomputing.com).
 
 ## Usage
 
@@ -12,7 +12,7 @@
 In order to use `qe-openfermion` in your workflow, you need to add it as a `resource` in your Orquestra workflow:
 
 ```yaml
-resources:
+imports:
 - name: qe-openfermion
   type: git
   parameters:
@@ -20,20 +20,19 @@ resources:
     branch: "master"
 ```
 
-and then import in the `resources` argument of your `task`:
+and then include it in the `imports` argument of your `step`:
 
 ```yaml
-- - name: my-task
-    template: template-1
-    arguments:
-      parameters:
-      - param_1: 1
-      - resources: [qe-openfermion]
+- name: create-molecule
+  config:
+    runtime:
+      language: python3
+      imports: [qe-openfermion]
 ```
 
 Once that is done you can:
-- use any template from the `templates/` directory
-- use tasks which import `qeopenfermion` in the python code (see below)
+- execute any function from the `steps/` directory as a `step`
+- have the Python code in your step import the `qeopenfermion` module (see below)
 
 ### Python
 
