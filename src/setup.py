@@ -1,7 +1,8 @@
 import setuptools
 import os
 
-with open("README.md", "r") as f:
+readme_path = os.path.join("..", "README.md")
+with open(readme_path, "r") as f:
     long_description = f.read()
 
 setuptools.setup(
@@ -13,18 +14,18 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/zapatacomputing/qe-openfermion",
-    packages=["qeopenfermion"],
-    package_dir={"": "src/python"},
+    packages=['qeopenfermion'],
+    package_dir={'' : 'python'},
     classifiers=(
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ),
     install_requires=[
-        "pytest>=5.3.5",
-        "numpy>=1.18.1",
-        "openfermion>=0.11.0",
-        "python-rapidjson",
-        "pyquil>=2.17.0",
-        "z-quantum-core",
-    ],
+        'pytest>=5.3.5',
+        'numpy>=1.18.1',
+        'openfermion>=0.11.0',
+        'python-rapidjson',
+        'pyquil>=2.17.0',
+        'z-quantum-core'
+    ]
 )
