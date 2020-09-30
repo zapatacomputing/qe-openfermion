@@ -11,7 +11,7 @@ def transform_interaction_operator(transformation, input_operator):
     if transformation == "Jordan-Wigner":
         transformation = jordan_wigner
     elif transformation == "Bravyi-Kitaev":
-        input_op = get_fermion_operator(input_op)
+        input_operator = get_fermion_operator(input_operator)
         transformation = bravyi_kitaev
     else:
         raise RuntimeError("Unrecognized transformation ", transformation)

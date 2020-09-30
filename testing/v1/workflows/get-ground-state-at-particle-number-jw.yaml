@@ -9,21 +9,21 @@ imports:
   type: git
   parameters:
     repository: "git@github.com:zapatacomputing/z-quantum-core.git"
-    branch: "workflow-v1"
+    branch: dev
 - name: qe-openfermion
   type: git
   parameters:
     repository: "git@github.com:zapatacomputing/qe-openfermion.git"
-    branch: "workflow-v1"
+    branch: dev
 
 steps:
 - name: get-operator
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
-        file: qe-openfermion/tasks/operators.py
+        file: qe-openfermion/steps/operators.py
         function: get_number_operator
     resources:
       cpu: "1000m"
@@ -42,10 +42,10 @@ steps:
   passed: [get-operator]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
-        file: qe-openfermion/tasks/transforms.py
+        file: qe-openfermion/steps/transforms.py
         function: transform_interaction_operator
     resources:
       cpu: "1000m"
@@ -64,10 +64,10 @@ steps:
   passed: [transform-operator]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core, qe-openfermion]
       parameters:
-        file: qe-openfermion/tasks/evaluation.py
+        file: qe-openfermion/steps/evaluation.py
         function: get_ground_state_at_particle_number_jw
     resources:
       cpu: "1000m"
