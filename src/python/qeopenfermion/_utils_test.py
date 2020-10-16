@@ -20,7 +20,7 @@ from openfermion.transforms import (
     get_fermion_operator,
     jordan_wigner,
 )
-from openfermion.utils import qubit_operator_sparse
+from openfermion.utils import qubit_operator_sparse, eigenspectrum
 
 from ._io import convert_qubitop_to_dict, save_qubit_operator, load_qubit_operator
 from ._utils import (
@@ -36,6 +36,7 @@ from ._utils import (
     get_diagonal_component,
     get_polynomial_tensor,
     qubitop_to_paulisum,
+    reorder_fermionic_modes,
 )
 
 
@@ -363,3 +364,34 @@ class TestOtherUtils(unittest.TestCase):
         # Then
         self.assertEqual(paulisum.qubits, expected_qubits)
         self.assertEqual(paulisum, expected_paulisum)
+
+    def test_reorder_fermionic_modes(self):
+        ref_op = get_interaction_operator(
+            FermionOperator(
+                """
+        0.0 [] +
+        1.0 [0^ 0] +
+        1.0 [1^ 1] +
+        1.0 [0^ 1^ 2 3] +
+        1.0 [1^ 1^ 2 2]
+        """
+            )
+        )
+        reordered_op = get_interaction_operator(
+            FermionOperator(
+                """
+        0.0 [] +
+        1.0 [0^ 0] +
+        1.0 [2^ 2] +
+        1.0 [0^ 2^ 1 3] +
+        1.0 [2^ 2^ 1 1]
+        """
+            )
+        )
+        spin_block_op = reorder_fermionic_modes(ref_op, [0, 2, 1, 3])
+        self.assertEqual(reordered_op, spin_block_op)
+        spin_block_qubit_op = jordan_wigner(spin_block_op)
+        interleaved_qubit_op = jordan_wigner(ref_op)
+        spin_block_spectrum = eigenspectrum(spin_block_qubit_op)
+        interleaved_spectrum = eigenspectrum(interleaved_qubit_op)
+        self.assertTrue(np.allclose(spin_block_spectrum, interleaved_spectrum))
