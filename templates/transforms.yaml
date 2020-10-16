@@ -5,6 +5,8 @@ spec:
     inputs:
       parameters:
       - name: transformation
+      - name: ordering
+        default: 'None'
       - name: command
         value: python3 main_script.py
       artifacts:
@@ -16,12 +18,17 @@ spec:
         raw:
           data: |
             import os
-            from qeopenfermion import load_interaction_operator, save_qubit_operator
+            from qeopenfermion import (load_interaction_operator, save_qubit_operator,
+                                       reorder_fermionic_modes)
             from openfermion import jordan_wigner, bravyi_kitaev, get_fermion_operator
             import time
             from zquantum.core.utils import save_timing
+
             input_op = load_interaction_operator('input-op.json')
 
+            if '{{inputs.parameters.ordering}}' is not None:
+              input_op = reorder_fermionic_modes(input_op, '{{inputs.parameters.ordering}}')
+              
             if '{{inputs.parameters.transformation}}' == 'Jordan-Wigner':
               transformation = jordan_wigner
             elif '{{inputs.parameters.transformation}}' == 'Bravyi-Kitaev':
