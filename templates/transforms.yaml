@@ -26,8 +26,8 @@ spec:
 
             input_op = load_interaction_operator('input-op.json')
 
-            if '{{inputs.parameters.ordering}}' is not None:
-              input_op = reorder_fermionic_modes(input_op, '{{inputs.parameters.ordering}}')
+            if {{inputs.parameters.ordering}} is not None:
+              input_op = reorder_fermionic_modes(input_op, {{inputs.parameters.ordering}})
               
             if '{{inputs.parameters.transformation}}' == 'Jordan-Wigner':
               transformation = jordan_wigner
