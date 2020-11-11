@@ -5,7 +5,10 @@ from qeopenfermion import (
     load_interaction_operator,
     load_qubit_operator,
     save_qubit_operator,
+    InteractionOperator,
 )
+
+from openfermion import apply_constraints, get_interaction_operator
 
 
 def get_fermion_number_operator(number_of_qubits, number_of_particles="None"):
@@ -20,7 +23,9 @@ def get_fermion_number_operator(number_of_qubits, number_of_particles="None"):
 
 def get_diagonal_component(interaction_operator):
     interaction_operator = load_interaction_operator(interaction_operator)
-    diagonal_operator, remainder_operator = _get_diagonal_component(interaction_operator)
+    diagonal_operator, remainder_operator = _get_diagonal_component(
+        interaction_operator
+    )
     save_interaction_operator(diagonal_operator, "diagonal-operator.json")
     save_interaction_operator(remainder_operator, "remainder-operator.json")
 
@@ -39,3 +44,11 @@ def interpolate_qubit_operators(
     )
 
     save_qubit_operator(output_qubit_operator, "qubit-operator.json")
+
+
+def apply_fermionic_constraintes(
+    input_operator: InteractionOperator, n_fermions: int
+) -> None:
+    input_operator = load_interaction_operator(input_operator)
+    result = apply_constraints(input_operator, n_fermions)
+    save_interaction_operator(get_interaction_operator(result), "output_operator.json")
