@@ -46,9 +46,9 @@ def interpolate_qubit_operators(
     save_qubit_operator(output_qubit_operator, "qubit-operator.json")
 
 
-def apply_fermionic_constraintes(
-    input_operator: InteractionOperator, n_fermions: int
+def apply_fermionic_constraints(
+    interaction_operator: InteractionOperator, n_fermions: int
 ) -> None:
-    input_operator = load_interaction_operator(input_operator)
+    input_operator = load_interaction_operator(interaction_operator)
     result = apply_constraints(input_operator, n_fermions)
     save_interaction_operator(get_interaction_operator(result), "output_operator.json")
