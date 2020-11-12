@@ -24,7 +24,7 @@ steps:
       imports: [z-quantum-core, qe-openfermion]
       parameters:
         file: qe-openfermion/steps/operators.py
-        function: get_number_operator
+        function: get_fermion_number_operator
     resources:
       cpu: "1000m"
       memory: "1Gi"
@@ -67,7 +67,7 @@ steps:
       imports: [z-quantum-core, qe-openfermion]
       parameters:
         file: qe-openfermion/steps/operators.py
-        function: get_number_operator
+        function: get_fermion_number_operator
     resources:
       cpu: "1000m"
       memory: "1Gi"
