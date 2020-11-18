@@ -9,6 +9,7 @@ from openfermion import (
     IsingOperator,
     get_interaction_operator,
     hermitian_conjugated,
+    InteractionRDM,
 )
 from zquantum.core.circuit import build_uniform_param_grid, save_circuit_template_params
 from zquantum.core.interfaces.mock_objects import MockAnsatz
@@ -30,10 +31,26 @@ from ._io import (
     save_ising_operator,
     load_ising_operator,
     save_parameter_grid_evaluation,
+    save_interaction_rdm,
+    load_interaction_rdm,
+    convert_interaction_rdm_to_dict,
+    convert_dict_to_interaction_rdm,
+)
+from zquantum.core.utils import (
+    SCHEMA_VERSION,
+    convert_dict_to_array,
+    convert_array_to_dict,
 )
 
 
 class TestQubitOperator(unittest.TestCase):
+    def setUp(self):
+        n_modes = 2
+        np.random.seed(0)
+        one_body_tensor = np.random.rand(*(n_modes,) * 2)
+        two_body_tensor = np.random.rand(*(n_modes,) * 4)
+        self.interaction_rdm = InteractionRDM(one_body_tensor, two_body_tensor)
+
     def test_qubitop_to_dict_io(self):
         # Given
         qubit_op = QubitOperator(((0, "Y"), (1, "X"), (2, "Z"), (4, "X")), 3.0j)
@@ -56,14 +73,14 @@ class TestQubitOperator(unittest.TestCase):
 
         # Then
         self.assertEqual(qubit_op, loaded_op)
-        
+
     def test_qubit_operator_set_io(self):
-        qubit_op1 = QubitOperator(((0, 'Y'), (3, 'X'), (8, 'Z'), (11, 'X')), 3.j)
-        qubit_op2 = QubitOperator(((0, 'Y'), (0, 'X'), (7, 'Z'), (14, 'X')), 1.j)
-        
+        qubit_op1 = QubitOperator(((0, "Y"), (3, "X"), (8, "Z"), (11, "X")), 3.0j)
+        qubit_op2 = QubitOperator(((0, "Y"), (0, "X"), (7, "Z"), (14, "X")), 1.0j)
+
         qubit_operator_set = [qubit_op1, qubit_op2]
-        save_qubit_operator_set(qubit_operator_set, 'qubit_operator_set.json')
-        loaded_qubit_operator_set = load_qubit_operator_set('qubit_operator_set.json')
+        save_qubit_operator_set(qubit_operator_set, "qubit_operator_set.json")
+        loaded_qubit_operator_set = load_qubit_operator_set("qubit_operator_set.json")
         for i in range(len(qubit_operator_set)):
             self.assertEqual(qubit_operator_set[i], loaded_qubit_operator_set[i])
         os.remove("qubit_operator_set.json")
@@ -154,6 +171,40 @@ class TestQubitOperator(unittest.TestCase):
         save_circuit_template_params(optimal_parameters, "optimal-parameters.json")
         # Then
         # TODO
+
+    def test_interaction_rdm_io(self):
+        # Given
+
+        # When
+        save_interaction_rdm(self.interaction_rdm, "interaction_rdm.json")
+        loaded_interaction_rdm = load_interaction_rdm("interaction_rdm.json")
+
+        # Then
+        self.assertEqual(self.interaction_rdm, loaded_interaction_rdm)
+        os.remove("interaction_rdm.json")
+
+    def test_convert_interaction_rdm_to_dict(self):
+        rdm_dict = convert_interaction_rdm_to_dict(self.interaction_rdm)
+
+        self.assertEqual(rdm_dict["schema"], SCHEMA_VERSION + "-interaction_rdm")
+        self.assertTrue(
+            np.allclose(
+                convert_dict_to_array(rdm_dict["one_body_tensor"]),
+                self.interaction_rdm.one_body_tensor,
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                convert_dict_to_array(rdm_dict["two_body_tensor"]),
+                self.interaction_rdm.two_body_tensor,
+            )
+        )
+
+    def test_convert_dict_to_interaction_rdm(self):
+        rdm_dict = convert_interaction_rdm_to_dict(self.interaction_rdm)
+        converted_interaction_rdm = convert_dict_to_interaction_rdm(rdm_dict)
+
+        self.assertEqual(self.interaction_rdm, converted_interaction_rdm)
 
     def tearDown(self):
         subprocess.run(
