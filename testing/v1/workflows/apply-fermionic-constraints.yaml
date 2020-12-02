@@ -2,7 +2,7 @@
 apiVersion: io.orquestra.workflow/1.0.0
 
 # Prefix for workflow ID
-name: get-number-operator
+name: apply-constraints
 
 imports:
 - name: z-quantum-core
@@ -14,7 +14,7 @@ imports:
   type: git
   parameters:
     repository: "git@github.com:zapatacomputing/qe-openfermion.git"
-    branch: dev
+    branch: fermionic-constraints
 
 steps:
 - name: get-operator
@@ -38,5 +38,26 @@ steps:
   - name: number-operator
     type: interaction-operator
 
+- name: apply-fermionic-constraints
+  passed: [get-operator]
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core, qe-openfermion]
+      parameters:
+        file: qe-openfermion/steps/operators.py
+        function: apply_fermionic_constraints
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - interaction_operator: ((get-operator.number-operator))
+    type: interaction-operator
+  - number_of_particles: 2
+    type: int
+  outputs:
+  - name: output_operator
+    type: interaction-operator
 types:
-- interaction-operator
+  - interaction-operator
