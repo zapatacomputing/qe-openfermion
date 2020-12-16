@@ -10,10 +10,12 @@ from qeopenfermion import (
     load_qubit_operator,
     evaluate_operator_for_parameter_grid as _evaluate_operator_for_parameter_grid,
     save_parameter_grid_evaluation,
+    save_interaction_rdm,
 )
 from openfermion.utils import (
     qubit_operator_sparse,
     jw_get_ground_state_at_particle_number as _jw_get_ground_state_at_particle_number,
+    get_ground_state_rdm_from_qubit_op as _get_ground_state_rdm_from_qubit_op
 )
 from pyquil.wavefunction import Wavefunction
 import json
@@ -27,6 +29,10 @@ def get_expectation_values_for_qubit_operator(backend_specs, circuit, qubit_oper
     expectation_values = backend.get_expectation_values(circuit, qubit_operator)
     save_expectation_values(expectation_values, "expectation-values.json")
 
+def get_ground_state_rdm_from_qubit_operator(qubit_operator, n_particles):
+    qubit_operator = load_qubit_operator(qubit_operator)
+    rdm = _get_ground_state_rdm_from_qubit_op(qubit_operator, n_particles)
+    save_interaction_rdm(rdm, "rdms.json")
 
 def evaluate_operator_for_parameter_grid(
     ansatz_specs,

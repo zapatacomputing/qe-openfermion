@@ -19,6 +19,7 @@ from openfermion.transforms import (
     get_interaction_operator,
     get_fermion_operator,
     jordan_wigner,
+    get_sparse_operator,
 )
 from openfermion.utils import qubit_operator_sparse
 
@@ -36,6 +37,7 @@ from ._utils import (
     get_diagonal_component,
     get_polynomial_tensor,
     qubitop_to_paulisum,
+    get_ground_state_rdm_from_qubit_op,
 )
 
 
@@ -44,6 +46,9 @@ from zquantum.core.utils import RNDSEED, create_object
 from zquantum.core.interfaces.mock_objects import MockAnsatz
 from zquantum.core.testing import create_random_qubitop, create_random_isingop
 from zquantum.core.circuit import build_uniform_param_grid
+
+from openfermion.hamiltonians import fermi_hubbard
+from openfermion import jw_get_ground_state_at_particle_number
 
 
 class TestQubitOperator(unittest.TestCase):
@@ -363,3 +368,20 @@ class TestOtherUtils(unittest.TestCase):
         # Then
         self.assertEqual(paulisum.qubits, expected_qubits)
         self.assertEqual(paulisum, expected_paulisum)
+
+    def test_rdm_from_qubit_op(self):
+        # Given
+        n_sites = 2
+        U = 5.
+        fhm = fermi_hubbard(x_dimension=n_sites, y_dimension=1, tunneling=1., coulomb=U, chemical_potential=U/2,
+                     magnetic_field=0, periodic=False, spinless=False, particle_hole_symmetry=False)
+        fhm_qubit = jordan_wigner(fhm)
+        fhm_int = get_interaction_operator(fhm)
+        e, wf = jw_get_ground_state_at_particle_number(get_sparse_operator(fhm), n_sites)
+        
+        # When 
+        rdm = get_ground_state_rdm_from_qubit_op(qubit_operator = fhm_qubit, n_particles=n_sites)
+
+        # Then
+        self.assertAlmostEqual(e, rdm.expectation(fhm_int))
+
