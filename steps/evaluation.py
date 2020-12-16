@@ -9,13 +9,13 @@ from zquantum.core.utils import create_object, ValueEstimate, save_value_estimat
 from qeopenfermion import (
     load_qubit_operator,
     evaluate_operator_for_parameter_grid as _evaluate_operator_for_parameter_grid,
+    get_ground_state_rdm_from_qubit_op as _get_ground_state_rdm_from_qubit_op,
     save_parameter_grid_evaluation,
     save_interaction_rdm,
 )
 from openfermion.utils import (
     qubit_operator_sparse,
     jw_get_ground_state_at_particle_number as _jw_get_ground_state_at_particle_number,
-    get_ground_state_rdm_from_qubit_op as _get_ground_state_rdm_from_qubit_op
 )
 from pyquil.wavefunction import Wavefunction
 import json
