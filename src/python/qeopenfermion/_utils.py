@@ -1,24 +1,24 @@
+import itertools
+import cirq
+import numpy as np
+import random
+
 from openfermion import (
     FermionOperator,
     QubitOperator,
     count_qubits,
     InteractionOperator,
     PolynomialTensor,
+    number_operator,
+    normal_ordered,
+    get_sparse_operator,
+    get_interaction_operator,
 )
-from openfermion.utils import expectation as openfermion_expectation
-from openfermion.utils import number_operator, normal_ordered
-from openfermion.transforms import get_sparse_operator, get_interaction_operator
-import numpy as np
-import random
-import copy
+from openfermion import expectation as openfermion_expectation
 from typing import List, Union, Optional
 
-from zquantum.core.circuit import build_ansatz_circuit
 from zquantum.core.utils import bin2dec, dec2bin, ValueEstimate
 from zquantum.core.measurement import ExpectationValues, expectation_values_to_real
-from openfermion import count_qubits
-import itertools
-import cirq
 
 
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
@@ -239,8 +239,8 @@ def evaluate_operator_for_parameter_grid(
         ansatz (dict): the ansatz
         grid (zquantum.core.circuit.ParameterGrid): The parameter grid containing
             the parameters for the last layer of the ansatz
-        backend (zquantum.core.interfaces.backend.QuantumSimulator): the backend 
-            to run the circuits on 
+        backend (zquantum.core.interfaces.backend.QuantumSimulator): the backend
+            to run the circuits on
         operator (openfermion.ops.QubitOperator): the operator
         previous_layer_params (array): A list of the parameters for previous layers
             of the ansatz
@@ -248,8 +248,8 @@ def evaluate_operator_for_parameter_grid(
     Returns:
         value_estimate (zquantum.core.utils.ValueEstimate): stores the value of the expectation and its
              precision
-        optimal_parameters (numpy array): the ansatz parameters representing the ansatz parameters 
-            resulting in the best minimum evaluation. If multiple sets of parameters evaluate to the same value, 
+        optimal_parameters (numpy array): the ansatz parameters representing the ansatz parameters
+            resulting in the best minimum evaluation. If multiple sets of parameters evaluate to the same value,
             the first set of parameters is chosen as the optimal.
     """
     parameter_grid_evaluation = []
@@ -296,7 +296,7 @@ def reverse_qubit_order(qubit_operator: QubitOperator, n_qubits: Optional[int] =
 
     Args:
         qubit_operator (openfermion.QubitOperator): the operator
-        n_qubits (int): total number of qubits. Needs to be provided when 
+        n_qubits (int): total number of qubits. Needs to be provided when
                     the size of the system of interest is greater than the size of qubit operator (optional)
 
     Returns:
@@ -401,7 +401,7 @@ def _get_diagonal_component_polynomial_tensor(polynomial_tensor):
     as products of number operators).
     Args:
         interaction_operator (openfermion.ops.InteractionOperator): the operator
-    
+
     Returns:
         tuple: two openfermion.ops.InteractionOperator objects. The first is the
             diagonal component, and the second is the remainder.
@@ -462,7 +462,7 @@ def _get_diagonal_component_interaction_operator(interaction_operator):
     as products of number operators).
     Args:
         interaction_operator (openfermion.ops.InteractionOperator): the operator
-    
+
     Returns:
         tuple: two openfermion.ops.InteractionOperator objects. The first is the
             diagonal component, and the second is the remainder.
@@ -511,7 +511,7 @@ def get_polynomial_tensor(fermion_operator, n_qubits=None):
             PolynomialTensor. Must be at least equal to the number of qubits
             that are acted on by fermion_operator. If None, then the number of
             qubits is inferred from fermion_operator.
-    
+
     Returns:
         openfermion.ops.PolynomialTensor: The tensor representation of the
             operator.
@@ -558,7 +558,7 @@ def qubitop_to_paulisum(
         qubits()
 
     Returns:
-        cirq.PauliSum 
+        cirq.PauliSum
     """
     operator_map = {"X": cirq.X, "Y": cirq.Y, "Z": cirq.Z}
 
@@ -579,4 +579,3 @@ def qubitop_to_paulisum(
         converted_sum += cirq_term * coefficient
 
     return converted_sum
-
