@@ -1,29 +1,26 @@
 import unittest
 import random
 import numpy as np
-import os
-
 import pyquil
-from pyquil.paulis import sX, sY, sZ, sI
 
 from cirq import GridQubit, LineQubit, X, Y, Z, PauliSum, PauliString
-
 from openfermion import (
     QubitOperator,
     IsingOperator,
     FermionOperator,
-    InteractionOperator,
-    PolynomialTensor,
-)
-from openfermion.transforms import (
     get_interaction_operator,
     get_fermion_operator,
     jordan_wigner,
     get_sparse_operator,
+    qubit_operator_sparse,
 )
-from openfermion.utils import qubit_operator_sparse
 
-from ._io import convert_qubitop_to_dict, save_qubit_operator, load_qubit_operator
+from zquantum.core.measurement import ExpectationValues
+from zquantum.core.utils import RNDSEED, create_object
+from zquantum.core.interfaces.mock_objects import MockAnsatz
+from zquantum.core.testing import create_random_qubitop, create_random_isingop
+from zquantum.core.circuit import build_uniform_param_grid
+
 from ._utils import (
     generate_random_qubitop,
     get_qubitop_from_coeffs_and_labels,
@@ -372,15 +369,28 @@ class TestOtherUtils(unittest.TestCase):
     def test_rdm_from_qubit_op(self):
         # Given
         n_sites = 2
-        U = 5.
-        fhm = fermi_hubbard(x_dimension=n_sites, y_dimension=1, tunneling=1., coulomb=U, chemical_potential=U/2,
-                     magnetic_field=0, periodic=False, spinless=False, particle_hole_symmetry=False)
+        U = 5.0
+        fhm = fermi_hubbard(
+            x_dimension=n_sites,
+            y_dimension=1,
+            tunneling=1.0,
+            coulomb=U,
+            chemical_potential=U / 2,
+            magnetic_field=0,
+            periodic=False,
+            spinless=False,
+            particle_hole_symmetry=False,
+        )
         fhm_qubit = jordan_wigner(fhm)
         fhm_int = get_interaction_operator(fhm)
-        e, wf = jw_get_ground_state_at_particle_number(get_sparse_operator(fhm), n_sites)
-        
-        # When 
-        rdm = get_ground_state_rdm_from_qubit_op(qubit_operator = fhm_qubit, n_particles=n_sites)
+        e, wf = jw_get_ground_state_at_particle_number(
+            get_sparse_operator(fhm), n_sites
+        )
+
+        # When
+        rdm = get_ground_state_rdm_from_qubit_op(
+            qubit_operator=fhm_qubit, n_particles=n_sites
+        )
 
         # Then
         self.assertAlmostEqual(e, rdm.expectation(fhm_int))
